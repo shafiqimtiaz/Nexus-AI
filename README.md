@@ -179,6 +179,37 @@ Nexus is designed to deploy seamlessly to Vercel:
 
 ---
 
+## 🕹️ Usage Instructions
+
+Once the app is running and your database is configured:
+
+### 1. Account Access & Setup
+*   **Sign In:** Navigate to `/login` and enter your owner email and password (configured during Supabase setup).
+*   **Demo Mode Check:** If you are not signed in, you will browse mock data in read-only mode.
+
+### 2. Configure Platforms
+*   Go to the **Options** page.
+*   **Google Classroom:** Click **Connect Google Account**, complete the OAuth flow, choose your target academic course, and save.
+*   **Discord:** Paste your Discord bot token and announcements Channel ID, then click **Connect Bot**.
+
+### 3. Sync Announcements & Calendar
+*   Visit the **Dashboard**. Nexus automatically triggers a sync of new assignments and announcements.
+*   Alternatively, click the **Sync Now** button on the Dashboard.
+*   Synced assignments are auto-converted into calendar events (marked `is_auto_detected`).
+
+### 4. Talk to the Agent
+*   Go to the **AI Chat** page.
+*   Ask: `"Summarize announcements"` to read recent posts from Classroom and Discord.
+*   Ask: `"Create a study block for Math exam this Friday from 2 PM to 4 PM"` — the agent calls database tools and places it on your calendar.
+*   Ask: `"Find resources about algorithms"` or `"Save a resource link http://example.com with label Exam"` to index links.
+*   Ask: `"Generate a study plan for my upcoming biology test on July 10"` to let the agent auto-populate multi-day calendar blocks.
+
+### 5. Calendar & Resources Management
+*   **Calendar:** View exams, assignments, and study blocks on the month grid. Click any day to manually create academic events.
+*   **Resources:** Create label tags, search bookmarks by keyword, toggle pin status, and filter bookmarks using labels.
+
+---
+
 ## 🔒 Public Demo Mode
 
 To allow Kaggle judges to review the application without requiring OAuth connections or leaking personal student data:
