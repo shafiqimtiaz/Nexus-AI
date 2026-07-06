@@ -4,8 +4,10 @@ import { cookies } from "next/headers";
 import { MockSupabaseQueryBuilder } from "./mock-db";
 
 export function createServerClient() {
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
   // If Supabase keys are not set, fall back to mock database immediately
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !anonKey) {
     return {
       from(table: string) {
         return new MockSupabaseQueryBuilder(table);
@@ -32,7 +34,7 @@ export function createServerClient() {
                   if (hasSession) {
                     client = createSupabaseServerClient(
                       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+                      anonKey!,
                       {
                         cookies: {
                           getAll() {
