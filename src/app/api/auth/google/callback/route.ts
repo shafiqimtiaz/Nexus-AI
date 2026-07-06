@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
-import { requireOwner } from "@/lib/auth";
 import { exchangeCode, OAUTH_STATE_COOKIE } from "@/lib/auth/google-oauth";
 
 const CLASSROOM_COURSES_URL =
@@ -24,11 +23,6 @@ export async function GET(request: NextRequest) {
 
   if (!state || !storedState || state !== storedState) {
     return NextResponse.redirect(optionsUrl("error=state"));
-  }
-
-  const denied = await requireOwner();
-  if (denied) {
-    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   const code = params.get("code");
@@ -82,6 +76,13 @@ export async function GET(request: NextRequest) {
     if (error) {
       return NextResponse.redirect(optionsUrl("error=save"));
     }
+
+    // Successfully connected! Automatically log the user in.
+    c.set("nexus_logged_in", "true", {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
 
     return NextResponse.redirect(optionsUrl("connected=classroom"));
   } catch {

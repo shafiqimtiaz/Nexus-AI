@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { requireOwner } from "@/lib/auth";
 import { getAuthUrl, OAUTH_STATE_COOKIE } from "@/lib/auth/google-oauth";
 
-// GET /api/auth/google — owner-only. Starts the Google OAuth flow: mints a CSRF
-// state value, stashes it in an httpOnly cookie, and redirects to Google's
-// consent screen. A demo user is bounced to /login rather than getting raw 403
-// JSON (this is a navigation route).
+// GET /api/auth/google — Starts the Google OAuth flow.
+// Unlocked so users can log in and connect Classroom via Google.
 export async function GET(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
   const state = crypto.randomUUID();
 
   const c = await cookies();
