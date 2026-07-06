@@ -229,31 +229,12 @@ export function ChatInterface({ role }: { role: Role }) {
       )}
 
       {!isDemo && hasKey && (
-        <div className="mb-3 flex items-center justify-between gap-4 rounded-lg border bg-card p-3 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-4 rounded-lg border bg-card px-3 py-2 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              AI Assistant Online
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              AI Assistant Connected
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Model:</span>
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              disabled={busy}
-              className="rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:border-border transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
-            >
-              <option value="gemini-flash-lite-latest">Gemini Flash Lite Latest (Default)</option>
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-              <option value="gemini-flash-latest">Gemini Flash Latest</option>
-              <option value="gemini-pro-latest">Gemini Pro Latest</option>
-              <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
-              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-            </select>
           </div>
         </div>
       )}
@@ -334,6 +315,24 @@ export function ChatInterface({ role }: { role: Role }) {
           void send();
         }}
       >
+        {!isDemo && hasKey && (
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            disabled={busy}
+            className="rounded-md border border-input bg-background px-2.5 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:border-border transition-colors disabled:opacity-75 disabled:cursor-not-allowed max-w-[140px] shrink-0"
+          >
+            <option value="gemini-flash-lite-latest">Gemini Lite (Default)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            <option value="gemini-flash-latest">Gemini Flash</option>
+            <option value="gemini-pro-latest">Gemini Pro</option>
+            <option value="gemini-3.1-flash-lite">Gemini 3.1 Lite</option>
+            <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+          </select>
+        )}
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
