@@ -1,6 +1,13 @@
 "use client";
 
-import { ExternalLink, Loader2, Pencil, Pin, Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ExternalLinkIcon,
+  Loading03Icon,
+  PencilEdit02Icon,
+  PinIcon,
+  Delete02Icon,
+} from "@hugeicons/core-free-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,7 +99,7 @@ export function ResourceCard({
             className="inline-flex items-center gap-1.5 text-primary hover:underline"
           >
             <span className="line-clamp-2">{resource.title}</span>
-            <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+            <HugeiconsIcon icon={ExternalLinkIcon} className="h-3.5 w-3.5 shrink-0" />
           </a>
         </CardTitle>
         {isOwner && (
@@ -104,7 +111,10 @@ export function ResourceCard({
             aria-pressed={resource.is_pinned}
             onClick={() => togglePin.mutate()}
           >
-            <Pin className={cn("h-4 w-4", resource.is_pinned && "fill-current")} />
+            <HugeiconsIcon
+              icon={PinIcon}
+              className={cn("h-4 w-4", resource.is_pinned && "fill-current")}
+            />
           </Button>
         )}
       </CardHeader>
@@ -131,7 +141,7 @@ export function ResourceCard({
               aria-label="Edit resource"
               onClick={onEdit}
             >
-              <Pencil className="h-4 w-4" />
+              <HugeiconsIcon icon={PencilEdit02Icon} className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -141,9 +151,9 @@ export function ResourceCard({
               onClick={() => remove.mutate()}
             >
               {remove.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
               ) : (
-                <Trash2 className="h-4 w-4 text-destructive" />
+                <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4 text-destructive" />
               )}
             </Button>
           </div>

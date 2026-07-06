@@ -13,7 +13,8 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon, ArrowRight01Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -119,7 +120,7 @@ export function CalendarView({ role }: { role: Role }) {
         </div>
         {isOwner && (
           <Button onClick={() => setDialog({ mode: "create", date: new Date() })}>
-            <Plus className="h-4 w-4" />
+            <HugeiconsIcon icon={PlusSignIcon} className="h-4 w-4" />
             Add event
           </Button>
         )}
@@ -137,7 +138,7 @@ export function CalendarView({ role }: { role: Role }) {
                   aria-label="Previous month"
                   onClick={() => setCurrentMonth((m) => subMonths(m, 1))}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
@@ -152,7 +153,7 @@ export function CalendarView({ role }: { role: Role }) {
                   aria-label="Next month"
                   onClick={() => setCurrentMonth((m) => addMonths(m, 1))}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>

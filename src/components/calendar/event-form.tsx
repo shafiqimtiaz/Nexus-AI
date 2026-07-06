@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { Loader2, Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Loading03Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -228,9 +229,9 @@ export function EventForm({
           {isEdit ? (
             <Button variant="destructive" disabled={busy} onClick={() => remove.mutate()}>
               {remove.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
               ) : (
-                <Trash2 className="h-4 w-4" />
+                <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
               )}
               Delete
             </Button>
@@ -242,7 +243,7 @@ export function EventForm({
               Cancel
             </Button>
             <Button disabled={busy || !canSave} onClick={() => save.mutate()}>
-              {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {save.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
               {isEdit ? "Save" : "Create"}
             </Button>
           </div>

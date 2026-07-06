@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Hash, KeyRound, Loader2, GraduationCap, MessageSquare, Sparkles } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  HashIcon,
+  Key01Icon,
+  Loading03Icon,
+  Mortarboard02Icon,
+  Message01Icon,
+  SparklesIcon,
+} from "@hugeicons/core-free-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -68,14 +76,8 @@ export function PlatformCard({
   description: string;
   role: Role;
 }) {
-  const Icon =
-    type === "google_classroom"
-      ? GraduationCap
-      : type === "slack"
-        ? SlackIcon
-        : type === "gemini"
-          ? Sparkles
-          : MessageSquare;
+  const icon =
+    type === "google_classroom" ? Mortarboard02Icon : type === "gemini" ? SparklesIcon : Message01Icon;
   const queryClient = useQueryClient();
   const isDemo = role === "demo";
 
@@ -208,7 +210,11 @@ export function PlatformCard({
       <CardHeader>
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <Icon className="h-5 w-5" />
+            {isSlack ? (
+              <SlackIcon className="h-5 w-5" />
+            ) : (
+              <HugeiconsIcon icon={icon} className="h-5 w-5" />
+            )}
           </span>
           <div>
             <CardTitle>{displayName}</CardTitle>
@@ -249,7 +255,7 @@ export function PlatformCard({
                           htmlFor="client-id"
                           className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                         >
-                          <KeyRound className="h-3.5 w-3.5" />
+                          <HugeiconsIcon icon={Key01Icon} className="h-3.5 w-3.5" />
                           Google Client ID
                         </label>
                         <Input
@@ -265,7 +271,7 @@ export function PlatformCard({
                           htmlFor="client-secret"
                           className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                         >
-                          <KeyRound className="h-3.5 w-3.5" />
+                          <HugeiconsIcon icon={Key01Icon} className="h-3.5 w-3.5" />
                           Google Client Secret
                         </label>
                         <Input
@@ -309,7 +315,7 @@ export function PlatformCard({
                   disabled={isDemo || disconnect.isPending}
                   onClick={() => disconnect.mutate()}
                 >
-                  {disconnect.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {disconnect.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
                   Disconnect
                 </Button>
               ) : (
@@ -317,7 +323,7 @@ export function PlatformCard({
                   disabled={isDemo || connectGoogleOauth.isPending}
                   onClick={() => connectGoogleOauth.mutate()}
                 >
-                  {connectGoogleOauth.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {connectGoogleOauth.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
                   Connect Google Classroom
                 </Button>
               )}
@@ -334,7 +340,7 @@ export function PlatformCard({
                     htmlFor="bot-token"
                     className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                   >
-                    <KeyRound className="h-3.5 w-3.5" />
+                    <HugeiconsIcon icon={Key01Icon} className="h-3.5 w-3.5" />
                     {type === "gemini"
                       ? "Gemini API Key"
                       : isSlack
@@ -363,7 +369,7 @@ export function PlatformCard({
                       htmlFor="slack-cookie"
                       className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                     >
-                      <KeyRound className="h-3.5 w-3.5" />
+                      <HugeiconsIcon icon={Key01Icon} className="h-3.5 w-3.5" />
                       d cookie (xoxd-...)
                     </label>
                     <Input
@@ -383,7 +389,7 @@ export function PlatformCard({
                       htmlFor="bot-channel"
                       className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                     >
-                      <Hash className="h-3.5 w-3.5" />
+                      <HugeiconsIcon icon={HashIcon} className="h-3.5 w-3.5" />
                       Channel ID
                     </label>
                     <Input
@@ -405,7 +411,7 @@ export function PlatformCard({
                   disabled={isDemo || disconnect.isPending}
                   onClick={() => disconnect.mutate()}
                 >
-                  {disconnect.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {disconnect.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
                   Disconnect
                 </Button>
               ) : (
@@ -419,7 +425,7 @@ export function PlatformCard({
                   }
                   onClick={() => connectBot.mutate()}
                 >
-                  {connectBot.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {connectBot.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
                   Connect
                 </Button>
               )}

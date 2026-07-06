@@ -1,5 +1,6 @@
 import { format, formatDistanceToNow } from "date-fns";
-import { CalendarDays } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import type { DashboardEvent } from "@/lib/dashboard";
@@ -9,7 +10,7 @@ export function UpcomingEvents({ events }: { events: DashboardEvent[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-primary" />
+          <HugeiconsIcon icon={Calendar03Icon} className="h-4 w-4 text-primary" />
           Upcoming exams &amp; quizzes
         </CardTitle>
       </CardHeader>

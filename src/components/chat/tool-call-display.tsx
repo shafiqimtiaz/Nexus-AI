@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Wrench, ChevronDown, Loader2, Check, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Wrench01Icon,
+  ArrowDown01Icon,
+  Loading03Icon,
+  Tick02Icon,
+  Cancel01Icon,
+} from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 export type ToolCall = {
@@ -35,15 +42,23 @@ export function ToolCallDisplay({ call }: { call: ToolCall }) {
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center gap-2 px-3 py-2 text-left"
       >
-        <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <HugeiconsIcon icon={Wrench01Icon} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="font-mono font-medium">{call.toolName}</span>
         <span className="ml-auto flex items-center gap-1.5">
           {call.state === "running" && (
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            <HugeiconsIcon
+              icon={Loading03Icon}
+              className="h-3.5 w-3.5 animate-spin text-muted-foreground"
+            />
           )}
-          {call.state === "done" && <Check className="h-3.5 w-3.5 text-green-600" />}
-          {call.state === "error" && <X className="h-3.5 w-3.5 text-red-600" />}
-          <ChevronDown
+          {call.state === "done" && (
+            <HugeiconsIcon icon={Tick02Icon} className="h-3.5 w-3.5 text-green-600" />
+          )}
+          {call.state === "error" && (
+            <HugeiconsIcon icon={Cancel01Icon} className="h-3.5 w-3.5 text-red-600" />
+          )}
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
             className={cn(
               "h-3.5 w-3.5 text-muted-foreground transition-transform",
               open && "rotate-180"

@@ -1,13 +1,26 @@
-import { Bell, CalendarClock, ClipboardList } from "lucide-react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import {
+  Notification03Icon,
+  CalendarClockIcon,
+  ClipboardListIcon,
+} from "@hugeicons/core-free-icons";
 import { Card, CardContent } from "@/components/ui/card";
 import type { DashboardData } from "@/lib/dashboard";
 
-function Stat({ icon: Icon, value, label }: { icon: typeof Bell; value: string; label: string }) {
+function Stat({
+  icon,
+  value,
+  label,
+}: {
+  icon: IconSvgElement;
+  value: string;
+  label: string;
+}) {
   return (
     <Card>
       <CardContent className="flex items-center gap-4">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="h-5 w-5" />
+          <HugeiconsIcon icon={icon} className="h-5 w-5" />
         </span>
         <div className="min-w-0">
           <div className="text-2xl font-semibold leading-none tracking-tight tabular-nums">
@@ -24,7 +37,7 @@ export function QuickStats({ stats }: { stats: DashboardData["stats"] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <Stat
-        icon={CalendarClock}
+        icon={CalendarClockIcon}
         value={
           stats.daysToNextExam === null
             ? "—"
@@ -40,9 +53,13 @@ export function QuickStats({ stats }: { stats: DashboardData["stats"] }) {
               : "Days to next exam"
         }
       />
-      <Stat icon={Bell} value={String(stats.unreadAnnouncements)} label="Unread announcements" />
       <Stat
-        icon={ClipboardList}
+        icon={Notification03Icon}
+        value={String(stats.unreadAnnouncements)}
+        label="Unread announcements"
+      />
+      <Stat
+        icon={ClipboardListIcon}
         value={String(stats.upcomingAssignments)}
         label="Upcoming assignments"
       />

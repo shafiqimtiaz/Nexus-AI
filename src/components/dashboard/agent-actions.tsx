@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
-import { Calendar, Link, RefreshCw, Sparkles } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Calendar03Icon, Link02Icon, RefreshIcon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardAgentAction } from "@/lib/dashboard";
 
@@ -8,7 +9,7 @@ export function AgentActions({ items }: { items: DashboardAgentAction[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
+          <HugeiconsIcon icon={SparklesIcon} className="h-4 w-4 text-amber-500 animate-pulse" />
           Autonomous Concierge Log
         </CardTitle>
       </CardHeader>
@@ -20,23 +21,23 @@ export function AgentActions({ items }: { items: DashboardAgentAction[] }) {
         ) : (
           <ul className="divide-y divide-border">
             {items.map((item) => {
-              let Icon = Sparkles;
+              let icon = SparklesIcon;
               let iconColor = "text-amber-500";
               if (item.action_type === "calendar") {
-                Icon = Calendar;
+                icon = Calendar03Icon;
                 iconColor = "text-blue-500";
               } else if (item.action_type === "resource") {
-                Icon = Link;
+                icon = Link02Icon;
                 iconColor = "text-emerald-500";
               } else if (item.action_type === "sync") {
-                Icon = RefreshCw;
+                icon = RefreshIcon;
                 iconColor = "text-cyan-500";
               }
 
               return (
                 <li key={item.id} className="py-3 flex items-start gap-3 first:pt-0 last:pb-0">
                   <div className={`mt-0.5 rounded-full bg-muted p-1.5 ${iconColor}`}>
-                    <Icon className="h-3.5 w-3.5" />
+                    <HugeiconsIcon icon={icon} className="h-3.5 w-3.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-medium text-foreground block truncate">

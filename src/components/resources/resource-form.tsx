@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Loader2, Plus } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Tick02Icon, Loading03Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -193,7 +194,7 @@ export function ResourceForm({
                           : "border-border text-muted-foreground hover:bg-muted"
                       )}
                     >
-                      {active && <Check className="h-3 w-3" />}
+                      {active && <HugeiconsIcon icon={Tick02Icon} className="h-3 w-3" />}
                       {!active && label.color && (
                         <span
                           className="h-2 w-2 rounded-full"
@@ -228,9 +229,9 @@ export function ResourceForm({
                 onClick={submitNewLabel}
               >
                 {createLabel.isPending ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <HugeiconsIcon icon={Loading03Icon} className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <Plus className="h-3.5 w-3.5" />
+                  <HugeiconsIcon icon={PlusSignIcon} className="h-3.5 w-3.5" />
                 )}
                 Add
               </Button>
@@ -243,7 +244,7 @@ export function ResourceForm({
             Cancel
           </Button>
           <Button disabled={busy || !canSave} onClick={() => save.mutate()}>
-            {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {save.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
             {isEdit ? "Save" : "Add"}
           </Button>
         </DialogFooter>

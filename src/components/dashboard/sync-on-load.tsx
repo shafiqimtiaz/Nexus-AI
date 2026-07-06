@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { RefreshIcon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import type { Role } from "@/lib/auth";
 
@@ -39,7 +40,7 @@ export function SyncOnLoad({ role }: { role: Role }) {
 
   return (
     <Button variant="outline" size="sm" disabled={syncing} onClick={() => void runSync(true)}>
-      <RefreshCw className={syncing ? "animate-spin" : undefined} />
+      <HugeiconsIcon icon={RefreshIcon} className={syncing ? "animate-spin" : undefined} />
       {syncing ? "Syncing…" : "Sync now"}
     </Button>
   );

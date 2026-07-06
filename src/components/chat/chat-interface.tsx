@@ -2,7 +2,8 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Loader2, Sparkles, Key } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { SentIcon, Loading03Icon, SparklesIcon, Key01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -241,14 +242,14 @@ export function ChatInterface({ role }: { role: Role }) {
 
       {hasKey === null && (
         <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <HugeiconsIcon icon={Loading03Icon} className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {!hasKey && hasKey !== null && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center border border-dashed rounded-lg bg-card shadow-sm space-y-4">
           <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
-            <Key className="h-6 w-6" />
+            <HugeiconsIcon icon={Key01Icon} className="h-6 w-6" />
           </div>
           <div className="max-w-md space-y-2">
             <h3 className="text-lg font-semibold tracking-tight">Gemini API Key Required</h3>
@@ -271,7 +272,7 @@ export function ChatInterface({ role }: { role: Role }) {
         >
           {messages.length === 0 && (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
-              <Sparkles className="h-8 w-8" />
+              <HugeiconsIcon icon={SparklesIcon} className="h-8 w-8" />
               <p className="text-sm">
                 Ask Nexus about your upcoming exams, plan a study schedule, or summarize recent
                 announcements.
@@ -295,7 +296,7 @@ export function ChatInterface({ role }: { role: Role }) {
                 {m.content ? (
                   <p className="whitespace-pre-wrap break-words">{m.content}</p>
                 ) : m.role === "assistant" && busy ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
                 ) : null}
                 {m.role === "assistant" && m.model && (
                   <div className="mt-1 text-[9px] text-muted-foreground/60 select-none text-right">
@@ -349,7 +350,11 @@ export function ChatInterface({ role }: { role: Role }) {
           className="h-10"
         />
         <Button type="submit" disabled={isDemo || busy || !input.trim() || !hasKey}>
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {busy ? (
+            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+          ) : (
+            <HugeiconsIcon icon={SentIcon} className="h-4 w-4" />
+          )}
         </Button>
       </form>
     </div>

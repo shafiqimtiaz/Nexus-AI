@@ -1,4 +1,5 @@
-import { Pin } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PinIcon } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardResource } from "@/lib/dashboard";
 
@@ -7,7 +8,7 @@ export function PinnedResources({ resources }: { resources: DashboardResource[] 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Pin className="h-4 w-4 text-primary" />
+          <HugeiconsIcon icon={PinIcon} className="h-4 w-4 text-primary" />
           Pinned resources
         </CardTitle>
       </CardHeader>

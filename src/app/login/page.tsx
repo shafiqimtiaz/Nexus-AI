@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -56,9 +57,15 @@ export default function LoginPage() {
     <div className="flex min-h-[70vh] items-center justify-center">
       <Card className="w-full max-w-sm border border-border/40 shadow-xl bg-card/60 backdrop-blur-md">
         <CardHeader className="space-y-1">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-xl font-semibold tracking-tight">Nexus</span>
+          <div className="mb-2 flex justify-center">
+            <Image
+              src="/nexus-logo.png"
+              alt="Nexus.ai"
+              width={110}
+              height={130}
+              className="h-16 w-auto"
+              priority
+            />
           </div>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
           <CardDescription>

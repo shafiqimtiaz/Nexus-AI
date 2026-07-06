@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,7 +85,7 @@ export function ResourcesView({ role }: { role: Role }) {
         </div>
         {isOwner && (
           <Button onClick={() => setDialog({ mode: "create" })}>
-            <Plus className="h-4 w-4" />
+            <HugeiconsIcon icon={PlusSignIcon} className="h-4 w-4" />
             Add resource
           </Button>
         )}
@@ -92,7 +93,10 @@ export function ResourcesView({ role }: { role: Role }) {
 
       <div className="space-y-4">
         <div className="relative max-w-md">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <HugeiconsIcon
+            icon={Search01Icon}
+            className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}

@@ -1,5 +1,6 @@
 import { format } from "date-fns";
-import { CalendarCheck } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CalendarCheckIcon } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import type { DashboardEvent } from "@/lib/dashboard";
@@ -9,7 +10,7 @@ export function TodaysSchedule({ events }: { events: DashboardEvent[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CalendarCheck className="h-4 w-4 text-primary" />
+          <HugeiconsIcon icon={CalendarCheckIcon} className="h-4 w-4 text-primary" />
           Today
         </CardTitle>
       </CardHeader>

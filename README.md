@@ -1,10 +1,14 @@
-# Nexus 🚀
+<p align="center">
+  <img src="./public/nexus-logo.png" alt="Nexus.ai" width="180" />
+</p>
+
+<h1 align="center">Nexus 🚀</h1>
 
 **Live Link:** [https://nexus-ai-tool.vercel.app/](https://nexus-ai-tool.vercel.app/)
 
 Nexus is an **AI-powered personal academic organizer** that centralizes announcements, calendar events, resources, and an agentic AI chat into a single, unified workspace.
 
-Designed specifically for students, it integrates directly with Google Classroom (via Google OAuth) and Discord channels (via bot tokens), automatically parsing data to build calendar events, summarize announcements, organize resource links, and generate multi-day study blocks.
+Designed specifically for students, it integrates directly with Google Classroom (via Google OAuth), Discord, and Slack channels (via browser/user tokens — no bot required), automatically parsing data to build calendar events, summarize announcements, organize resource links, and generate multi-day study blocks.
 
 Nexus was developed for the **Kaggle 5-Day AI Agents Intensive Vibe Coding Capstone** (Concierge Track).
 

@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
-import { ExternalLink, Megaphone } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ExternalLinkIcon, Megaphone01Icon } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardAnnouncement } from "@/lib/dashboard";
 
@@ -8,7 +9,7 @@ export function RecentAnnouncements({ items }: { items: DashboardAnnouncement[] 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Megaphone className="h-4 w-4 text-primary" />
+          <HugeiconsIcon icon={Megaphone01Icon} className="h-4 w-4 text-primary" />
           Recent announcements
         </CardTitle>
       </CardHeader>
@@ -25,7 +26,10 @@ export function RecentAnnouncements({ items }: { items: DashboardAnnouncement[] 
                       {item.title || "Announcement"}
                     </span>
                     {item.source_url && (
-                      <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <HugeiconsIcon
+                        icon={ExternalLinkIcon}
+                        className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                      />
                     )}
                   </div>
                   {item.content && (

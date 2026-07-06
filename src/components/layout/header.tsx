@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Sun, Moon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Logout01Icon, Sun03Icon, Moon02Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import type { Role } from "@/lib/auth";
 import { useTheme } from "next-themes";
@@ -51,16 +52,16 @@ export function Header({ role }: { role: Role }) {
             className="h-9 w-9 rounded-md"
           >
             {currentTheme === "dark" ? (
-              <Sun className="h-4 w-4 text-amber-500 transition-all" />
+              <HugeiconsIcon icon={Sun03Icon} className="h-4 w-4 text-amber-500 transition-all" />
             ) : (
-              <Moon className="h-4 w-4 text-slate-700 transition-all" />
+              <HugeiconsIcon icon={Moon02Icon} className="h-4 w-4 text-slate-700 transition-all" />
             )}
           </Button>
         )}
 
         {role === "owner" && (
           <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4" />
+            <HugeiconsIcon icon={Logout01Icon} className="h-4 w-4" />
             Log out
           </Button>
         )}
