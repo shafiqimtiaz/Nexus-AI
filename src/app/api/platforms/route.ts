@@ -7,7 +7,7 @@ import { requireOwner } from "@/lib/auth";
 const SAFE_COLUMNS =
   "id, type, name, external_id, is_connected, last_synced_at";
 
-const PLATFORM_TYPES = ["google_classroom", "discord"] as const;
+const PLATFORM_TYPES = ["google_classroom", "discord", "slack"] as const;
 type PlatformType = (typeof PLATFORM_TYPES)[number];
 
 const DISCORD_API = "https://discord.com/api/v10";
@@ -77,6 +77,43 @@ export async function POST(request: NextRequest) {
 
     const channel = await discordRes.json().catch(() => null);
     name = channel?.name ?? name ?? "Discord";
+  }
+
+  // Slack connect flow: validate the bot token and channel ID via conversations.info
+  if (type === "slack") {
+    if (!externalId || !accessToken) {
+      return Response.json(
+        { error: "A Slack channel ID and bot token (xoxb-...) are required." },
+        { status: 400 }
+      );
+    }
+
+    const params = new URLSearchParams({ channel: externalId });
+    const slackRes = await fetch(
+      `https://slack.com/api/conversations.info?${params.toString()}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    ).catch(() => null);
+
+    if (!slackRes || !slackRes.ok) {
+      return Response.json(
+        { error: "Slack API request failed. Check your network." },
+        { status: 400 }
+      );
+    }
+
+    const json = await slackRes.json().catch(() => null);
+    if (!json || !json.ok) {
+      return Response.json(
+        {
+          error: `Could not connect to Slack channel: ${
+            json?.error || "Invalid token or channel ID"
+          }. Make sure the bot is invited to the channel.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    name = json.channel?.name ?? name ?? "Slack";
   }
 
   const db = createServerClient();

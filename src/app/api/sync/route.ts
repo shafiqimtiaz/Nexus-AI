@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { requireOwner } from "@/lib/auth";
 import { fetchChannelMessages } from "@/lib/platforms/discord";
+import { fetchSlackMessages } from "@/lib/platforms/slack";
 import { listAnnouncements, listAssignments } from "../../../../mcp/classroom/tools";
 
 // POST /api/sync — pull announcements/assignments from every connected platform
@@ -22,7 +23,7 @@ type SyncResult = {
 
 interface PlatformRow {
   id: string;
-  type: "google_classroom" | "discord";
+  type: "google_classroom" | "discord" | "slack";
   external_id: string | null;
   access_token: string | null;
   last_synced_at: string | null;
@@ -131,6 +132,35 @@ async function syncDiscord(
   return { announcements: annCount, events: 0 };
 }
 
+async function syncSlack(
+  db: ReturnType<typeof createServerClient>,
+  platform: PlatformRow
+): Promise<{ announcements: number; events: number }> {
+  if (!platform.access_token || !platform.external_id) {
+    throw new Error("Slack platform is missing its bot token or channel ID.");
+  }
+
+  const messages = await fetchSlackMessages(
+    platform.access_token,
+    platform.external_id
+  );
+
+  const annCount = await upsertAnnouncements(
+    db,
+    messages.map((m) => ({
+      platform_id: platform.id,
+      external_id: m.id,
+      title: deriveTitle(m.content),
+      content: m.content,
+      author: m.author || null,
+      source_url: m.url,
+      announced_at: m.timestamp || null,
+    }))
+  );
+
+  return { announcements: annCount, events: 0 };
+}
+
 export async function POST(request: NextRequest) {
   const denied = await requireOwner();
   if (denied) return denied;
@@ -167,10 +197,14 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const counts =
-        platform.type === "discord"
-          ? await syncDiscord(db, platform)
-          : await syncClassroom(db, platform);
+      let counts = { announcements: 0, events: 0 };
+      if (platform.type === "discord") {
+        counts = await syncDiscord(db, platform);
+      } else if (platform.type === "slack") {
+        counts = await syncSlack(db, platform);
+      } else {
+        counts = await syncClassroom(db, platform);
+      }
 
       await db
         .from("platforms")

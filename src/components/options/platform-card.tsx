@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Role } from "@/lib/auth";
 
-type PlatformType = "google_classroom" | "discord";
+type PlatformType = "google_classroom" | "discord" | "slack";
 
 type SafePlatform = {
   id: string;
@@ -40,6 +40,18 @@ function formatSynced(iso: string | null): string {
   return `last synced ${new Date(iso).toLocaleString()}`;
 }
 
+function SlackIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523 2.528 2.528 0 0 1-2.522-2.523 2.528 2.528 0 0 1 2.522-2.52h2.52v2.52zm1.261 0a2.528 2.528 0 0 1 2.52-2.52h5.043a2.528 2.528 0 0 1 2.522 2.52v5.043a2.528 2.528 0 0 1-2.522 2.52H8.823a2.528 2.528 0 0 1-2.52-2.52v-5.043zm2.52-10.123a2.528 2.528 0 0 1-2.52-2.522A2.528 2.528 0 0 1 8.823 0a2.528 2.528 0 0 1 2.52 2.52v2.522h-2.52zm0 1.261a2.528 2.528 0 0 1 2.52 2.52v5.043a2.528 2.528 0 0 1-2.52 2.522H3.78a2.528 2.528 0 0 1-2.522-2.522V8.823a2.528 2.528 0 0 1 2.522-2.52h5.043zm10.123 2.52a2.528 2.528 0 0 1 2.522-2.52 2.528 2.528 0 0 1 2.52 2.52 2.528 2.528 0 0 1-2.52 2.522h-2.52v-2.522zm-1.261 0a2.528 2.528 0 0 1-2.522 2.52h-5.043a2.528 2.528 0 0 1-2.52-2.52V3.78a2.528 2.528 0 0 1 2.52-2.522h5.043a2.528 2.528 0 0 1 2.522 2.522v5.043zm-2.52 10.123a2.528 2.528 0 0 1 2.52 2.522a2.528 2.528 0 0 1-2.52 2.522 2.528 2.528 0 0 1-2.522-2.522v-2.522h2.522zm0-1.261a2.528 2.528 0 0 1-2.522-2.52v-5.043a2.528 2.528 0 0 1 2.522-2.52h5.043a2.528 2.528 0 0 1 2.52 2.52v5.043a2.528 2.528 0 0 1-2.52 2.52H15.18z"/>
+    </svg>
+  );
+}
+
 export function PlatformCard({
   type,
   displayName,
@@ -51,7 +63,12 @@ export function PlatformCard({
   description: string;
   role: Role;
 }) {
-  const Icon = type === "google_classroom" ? GraduationCap : MessageSquare;
+  const Icon =
+    type === "google_classroom"
+      ? GraduationCap
+      : type === "slack"
+      ? SlackIcon
+      : MessageSquare;
   const queryClient = useQueryClient();
   const isDemo = role === "demo";
 
@@ -89,6 +106,33 @@ export function PlatformCard({
     },
     onError: (err: Error) => toast.error(err.message),
   });
+
+  const connectSlack = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/platforms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "slack",
+          external_id: channelId.trim(),
+          access_token: botToken.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Could not connect Slack.");
+      return json.platform as SafePlatform;
+    },
+    onSuccess: (p) => {
+      toast.success(`Connected to #${p.name ?? "Slack"}.`);
+      setBotToken("");
+      setChannelId("");
+      queryClient.invalidateQueries({ queryKey: ["platforms"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const connectBot = type === "slack" ? connectSlack : connectDiscord;
+  const isSlack = type === "slack";
 
   const disconnect = useMutation({
     mutationFn: async () => {
@@ -168,35 +212,35 @@ export function PlatformCard({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label
-                    htmlFor="discord-token"
+                    htmlFor="bot-token"
                     className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                   >
                     <KeyRound className="h-3.5 w-3.5" />
                     Bot token
                   </label>
                   <Input
-                    id="discord-token"
+                    id="bot-token"
                     type="password"
                     autoComplete="off"
-                    placeholder="Bot token"
+                    placeholder={isSlack ? "xoxb-..." : "Bot token"}
                     value={botToken}
-                    disabled={isDemo || connectDiscord.isPending}
+                    disabled={isDemo || connectBot.isPending}
                     onChange={(e) => setBotToken(e.target.value)}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label
-                    htmlFor="discord-channel"
+                    htmlFor="bot-channel"
                     className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                   >
                     <Hash className="h-3.5 w-3.5" />
                     Channel ID
                   </label>
                   <Input
-                    id="discord-channel"
-                    placeholder="123456789012345678"
+                    id="bot-channel"
+                    placeholder={isSlack ? "C12345678" : "123456789012345678"}
                     value={channelId}
-                    disabled={isDemo || connectDiscord.isPending}
+                    disabled={isDemo || connectBot.isPending}
                     onChange={(e) => setChannelId(e.target.value)}
                   />
                 </div>
@@ -219,13 +263,13 @@ export function PlatformCard({
                 <Button
                   disabled={
                     isDemo ||
-                    connectDiscord.isPending ||
+                    connectBot.isPending ||
                     !botToken.trim() ||
                     !channelId.trim()
                   }
-                  onClick={() => connectDiscord.mutate()}
+                  onClick={() => connectBot.mutate()}
                 >
-                  {connectDiscord.isPending && (
+                  {connectBot.isPending && (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   )}
                   Connect

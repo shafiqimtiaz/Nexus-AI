@@ -30,6 +30,12 @@ export default async function OptionsPage() {
           description="Post reminders and updates to a channel via a bot."
           role={role}
         />
+        <PlatformCard
+          type="slack"
+          displayName="Slack"
+          description="Sync announcements and coursework from your workspace channels."
+          role={role}
+        />
       </div>
     </div>
   );
