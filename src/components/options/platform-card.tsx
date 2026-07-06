@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Hash, KeyRound, Loader2, GraduationCap, MessageSquare } from "lucide-react";
+import { Hash, KeyRound, Loader2, GraduationCap, MessageSquare, Sparkles } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -16,8 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Role } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
-type PlatformType = "google_classroom" | "discord" | "slack";
+type PlatformType = "google_classroom" | "discord" | "slack" | "gemini";
 
 type SafePlatform = {
   id: string;
@@ -68,6 +69,8 @@ export function PlatformCard({
       ? GraduationCap
       : type === "slack"
       ? SlackIcon
+      : type === "gemini"
+      ? Sparkles
       : MessageSquare;
   const queryClient = useQueryClient();
   const isDemo = role === "demo";
@@ -131,7 +134,34 @@ export function PlatformCard({
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const connectBot = type === "slack" ? connectSlack : connectDiscord;
+  const connectGemini = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/platforms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "gemini",
+          access_token: botToken.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Could not configure Gemini key.");
+      return json.platform as SafePlatform;
+    },
+    onSuccess: () => {
+      toast.success(`Gemini API Key configured.`);
+      setBotToken("");
+      queryClient.invalidateQueries({ queryKey: ["platforms"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const connectBot =
+    type === "gemini"
+      ? connectGemini
+      : type === "slack"
+      ? connectSlack
+      : connectDiscord;
   const isSlack = type === "slack";
 
   const disconnect = useMutation({
@@ -176,8 +206,11 @@ export function PlatformCard({
       <CardContent className="space-y-4">
         {connected && (
           <p className="text-xs text-muted-foreground">
-            {platform?.name ? `${platform.name} · ` : ""}
-            {formatSynced(platform?.last_synced_at ?? null)}
+            {type === "gemini"
+              ? "Key configured. AI Chat is fully operational."
+              : `${platform?.name ? `${platform.name} · ` : ""}${formatSynced(
+                  platform?.last_synced_at ?? null
+                )}`}
           </p>
         )}
 
@@ -209,41 +242,49 @@ export function PlatformCard({
         ) : (
           <div className="space-y-3">
             {!connected && (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={cn("grid gap-3", type === "gemini" ? "grid-cols-1" : "sm:grid-cols-2")}>
                 <div className="space-y-1.5">
                   <label
                     htmlFor="bot-token"
                     className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                   >
                     <KeyRound className="h-3.5 w-3.5" />
-                    Bot token
+                    {type === "gemini" ? "Gemini API Key" : "Bot token"}
                   </label>
                   <Input
                     id="bot-token"
                     type="password"
                     autoComplete="off"
-                    placeholder={isSlack ? "xoxb-..." : "Bot token"}
+                    placeholder={
+                      type === "gemini"
+                        ? "AIzaSy..."
+                        : isSlack
+                        ? "xoxb-..."
+                        : "Bot token"
+                    }
                     value={botToken}
                     disabled={isDemo || connectBot.isPending}
                     onChange={(e) => setBotToken(e.target.value)}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="bot-channel"
-                    className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
-                  >
-                    <Hash className="h-3.5 w-3.5" />
-                    Channel ID
-                  </label>
-                  <Input
-                    id="bot-channel"
-                    placeholder={isSlack ? "C12345678" : "123456789012345678"}
-                    value={channelId}
-                    disabled={isDemo || connectBot.isPending}
-                    onChange={(e) => setChannelId(e.target.value)}
-                  />
-                </div>
+                {type !== "gemini" && (
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="bot-channel"
+                      className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+                    >
+                      <Hash className="h-3.5 w-3.5" />
+                      Channel ID
+                    </label>
+                    <Input
+                      id="bot-channel"
+                      placeholder={isSlack ? "C12345678" : "123456789012345678"}
+                      value={channelId}
+                      disabled={isDemo || connectBot.isPending}
+                      onChange={(e) => setChannelId(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -265,7 +306,7 @@ export function PlatformCard({
                     isDemo ||
                     connectBot.isPending ||
                     !botToken.trim() ||
-                    !channelId.trim()
+                    (type !== "gemini" && !channelId.trim())
                   }
                   onClick={() => connectBot.mutate()}
                 >

@@ -7,7 +7,7 @@ import { requireOwner } from "@/lib/auth";
 const SAFE_COLUMNS =
   "id, type, name, external_id, is_connected, last_synced_at";
 
-const PLATFORM_TYPES = ["google_classroom", "discord", "slack"] as const;
+const PLATFORM_TYPES = ["google_classroom", "discord", "slack", "gemini"] as const;
 type PlatformType = (typeof PLATFORM_TYPES)[number];
 
 const DISCORD_API = "https://discord.com/api/v10";
@@ -114,6 +114,29 @@ export async function POST(request: NextRequest) {
     }
 
     name = json.channel?.name ?? name ?? "Slack";
+  }
+
+  // Gemini connect flow: validate API key via model API call
+  if (type === "gemini") {
+    if (!accessToken) {
+      return Response.json(
+        { error: "A Gemini API Key is required." },
+        { status: 400 }
+      );
+    }
+
+    const valRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash?key=${accessToken}`
+    ).catch(() => null);
+
+    if (!valRes || !valRes.ok) {
+      return Response.json(
+        { error: "Invalid Gemini API Key. Please verify your token." },
+        { status: 400 }
+      );
+    }
+
+    name = "Google Gemini";
   }
 
   const db = createServerClient();

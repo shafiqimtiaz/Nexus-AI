@@ -19,6 +19,12 @@ export default async function OptionsPage() {
 
       <div className="space-y-4">
         <PlatformCard
+          type="gemini"
+          displayName="Google Gemini"
+          description="Configure your Gemini API key to power the AI Chat Assistant."
+          role={role}
+        />
+        <PlatformCard
           type="google_classroom"
           displayName="Google Classroom"
           description="Sync your courses, assignments, and due dates."
