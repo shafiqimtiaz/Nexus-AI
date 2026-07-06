@@ -88,8 +88,7 @@ export function EventForm({
     }
   }, [open, event, defaultDate]);
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ["events"] });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["events"] });
 
   const save = useMutation({
     mutationFn: async () => {
@@ -227,11 +226,7 @@ export function EventForm({
 
         <DialogFooter className="sm:justify-between">
           {isEdit ? (
-            <Button
-              variant="destructive"
-              disabled={busy}
-              onClick={() => remove.mutate()}
-            >
+            <Button variant="destructive" disabled={busy} onClick={() => remove.mutate()}>
               {remove.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
@@ -243,11 +238,7 @@ export function EventForm({
             <span />
           )}
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => onOpenChange(false)}
-            >
+            <Button variant="outline" disabled={busy} onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button disabled={busy || !canSave} onClick={() => save.mutate()}>

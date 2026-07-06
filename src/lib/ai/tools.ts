@@ -8,17 +8,10 @@ import { createServerClient } from "@/lib/supabase/server";
 // the model (and the tool-call UI) stays readable. Descriptions are written for
 // the LLM: they say what the tool does and when to reach for it.
 
-const EVENT_TYPES = [
-  "exam",
-  "quiz",
-  "assignment",
-  "study_block",
-  "other",
-] as const;
+const EVENT_TYPES = ["exam", "quiz", "assignment", "study_block", "other"] as const;
 
 // Columns worth handing back to the model. Token columns / internal noise stay out.
-const EVENT_COLUMNS =
-  "id, title, description, event_type, start_time, end_time, is_auto_detected";
+const EVENT_COLUMNS = "id, title, description, event_type, start_time, end_time, is_auto_detected";
 const RESOURCE_COLUMNS = "id, title, url, description, is_pinned";
 
 function fail(context: string, message: string): never {
@@ -63,10 +56,7 @@ export function getLocalTools(): Record<string, Tool> {
         title: z.string().describe("Short title of the event."),
         event_type: z.enum(EVENT_TYPES),
         start_time: z.string().describe("Start time as an ISO 8601 datetime."),
-        end_time: z
-          .string()
-          .optional()
-          .describe("Optional end time as an ISO 8601 datetime."),
+        end_time: z.string().optional().describe("Optional end time as an ISO 8601 datetime."),
         description: z.string().optional(),
       }),
       execute: async ({ title, event_type, start_time, end_time, description }) => {
@@ -102,9 +92,7 @@ export function getLocalTools(): Record<string, Tool> {
       }),
       execute: async ({ id, ...fields }) => {
         const db = createServerClient();
-        const patch = Object.fromEntries(
-          Object.entries(fields).filter(([, v]) => v !== undefined)
-        );
+        const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
         if (Object.keys(patch).length === 0) {
           fail("edit_event", "no fields provided to update");
         }
@@ -203,10 +191,7 @@ export function getLocalTools(): Record<string, Tool> {
           };
         });
 
-        const { data, error } = await db
-          .from("events")
-          .insert(rows)
-          .select(EVENT_COLUMNS);
+        const { data, error } = await db.from("events").insert(rows).select(EVENT_COLUMNS);
 
         if (error) fail("generate_study_plan", error.message);
         return { created_count: data?.length ?? 0, study_blocks: data ?? [] };

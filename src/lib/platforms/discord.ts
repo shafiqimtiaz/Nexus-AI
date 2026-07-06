@@ -23,10 +23,7 @@ interface RawDiscordMessage {
   author?: { username?: string };
 }
 
-function normalizeMessage(
-  raw: RawDiscordMessage,
-  channelId: string
-): DiscordMessage {
+function normalizeMessage(raw: RawDiscordMessage, channelId: string): DiscordMessage {
   return {
     id: raw.id,
     content: raw.content ?? "",
@@ -36,10 +33,7 @@ function normalizeMessage(
   };
 }
 
-async function discordGet(
-  token: string,
-  path: string
-): Promise<RawDiscordMessage[]> {
+async function discordGet(token: string, path: string): Promise<RawDiscordMessage[]> {
   const res = await fetch(`${DISCORD_API}${path}`, {
     headers: { Authorization: `Bot ${token}` },
   });
@@ -59,14 +53,9 @@ export async function fetchChannelMessages(
   channelId: string,
   limit = 50
 ): Promise<DiscordMessage[]> {
-  const raw = await discordGet(
-    token,
-    `/channels/${channelId}/messages?limit=${limit}`
-  );
+  const raw = await discordGet(token, `/channels/${channelId}/messages?limit=${limit}`);
 
-  return raw
-    .map((m) => normalizeMessage(m, channelId))
-    .filter((m) => m.content.trim().length > 0);
+  return raw.map((m) => normalizeMessage(m, channelId)).filter((m) => m.content.trim().length > 0);
 }
 
 // Pinned messages for a channel. Same shape and same empty-content filter.
@@ -76,7 +65,5 @@ export async function fetchPinnedMessages(
 ): Promise<DiscordMessage[]> {
   const raw = await discordGet(token, `/channels/${channelId}/pins`);
 
-  return raw
-    .map((m) => normalizeMessage(m, channelId))
-    .filter((m) => m.content.trim().length > 0);
+  return raw.map((m) => normalizeMessage(m, channelId)).filter((m) => m.content.trim().length > 0);
 }

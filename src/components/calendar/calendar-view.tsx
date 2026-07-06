@@ -15,12 +15,7 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import { EventForm } from "@/components/calendar/event-form";
@@ -46,10 +41,8 @@ export type CalendarEvent = {
 const PILL_CLASS: Record<EventType, string> = {
   exam: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
   quiz: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
-  assignment:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
-  study_block:
-    "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  assignment: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  study_block: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
   other: "bg-muted text-muted-foreground",
 };
 
@@ -70,10 +63,7 @@ async function fetchUpcoming(): Promise<CalendarEvent[]> {
   return json.events ?? [];
 }
 
-type DialogState =
-  | { mode: "create"; date: Date }
-  | { mode: "edit"; event: CalendarEvent }
-  | null;
+type DialogState = { mode: "create"; date: Date } | { mode: "edit"; event: CalendarEvent } | null;
 
 export function CalendarView({ role }: { role: Role }) {
   const isOwner = role === "owner";
@@ -81,10 +71,7 @@ export function CalendarView({ role }: { role: Role }) {
   const [dialog, setDialog] = useState<DialogState>(null);
 
   // Always render six weeks (42 cells) starting on the Sunday on/before the 1st.
-  const gridStart = useMemo(
-    () => startOfWeek(startOfMonth(currentMonth)),
-    [currentMonth]
-  );
+  const gridStart = useMemo(() => startOfWeek(startOfMonth(currentMonth)), [currentMonth]);
   const days = useMemo(
     () => eachDayOfInterval({ start: gridStart, end: addDays(gridStart, 41) }),
     [gridStart]
@@ -118,9 +105,7 @@ export function CalendarView({ role }: { role: Role }) {
 
   const upcoming = useMemo(() => {
     const now = Date.now();
-    return allEvents
-      .filter((ev) => new Date(ev.start_time).getTime() >= now)
-      .slice(0, 10);
+    return allEvents.filter((ev) => new Date(ev.start_time).getTime() >= now).slice(0, 10);
   }, [allEvents]);
 
   return (
@@ -190,11 +175,7 @@ export function CalendarView({ role }: { role: Role }) {
                   return (
                     <div
                       key={key}
-                      onClick={
-                        isOwner
-                          ? () => setDialog({ mode: "create", date: day })
-                          : undefined
-                      }
+                      onClick={isOwner ? () => setDialog({ mode: "create", date: day }) : undefined}
                       className={cn(
                         "min-h-24 border-b border-r p-1.5 [&:nth-child(7n)]:border-r-0",
                         !inMonth && "bg-muted/30 text-muted-foreground",
@@ -205,8 +186,7 @@ export function CalendarView({ role }: { role: Role }) {
                         <span
                           className={cn(
                             "flex h-6 w-6 items-center justify-center rounded-full text-xs",
-                            today &&
-                              "bg-primary font-semibold text-primary-foreground"
+                            today && "bg-primary font-semibold text-primary-foreground"
                           )}
                         >
                           {format(day, "d")}
@@ -237,9 +217,7 @@ export function CalendarView({ role }: { role: Role }) {
                           </button>
                         ))}
                         {extra > 0 && (
-                          <div className="px-1.5 text-xs text-muted-foreground">
-                            +{extra} more
-                          </div>
+                          <div className="px-1.5 text-xs text-muted-foreground">+{extra} more</div>
                         )}
                       </div>
                     </div>
@@ -257,9 +235,7 @@ export function CalendarView({ role }: { role: Role }) {
             </CardHeader>
             <CardContent>
               {upcoming.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">
-                  Nothing coming up.
-                </p>
+                <p className="py-6 text-center text-sm text-muted-foreground">Nothing coming up.</p>
               ) : (
                 <ul className="divide-y divide-border">
                   {upcoming.map((ev) => {
@@ -269,9 +245,7 @@ export function CalendarView({ role }: { role: Role }) {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <EventBadge type={ev.event_type} />
-                            <span className="truncate font-medium">
-                              {ev.title}
-                            </span>
+                            <span className="truncate font-medium">{ev.title}</span>
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
                             {format(start, "EEE, MMM d · p")}
@@ -284,9 +258,7 @@ export function CalendarView({ role }: { role: Role }) {
                         {isOwner ? (
                           <button
                             type="button"
-                            onClick={() =>
-                              setDialog({ mode: "edit", event: ev })
-                            }
+                            onClick={() => setDialog({ mode: "edit", event: ev })}
                             className="w-full rounded text-left transition-colors hover:opacity-80"
                           >
                             {content}

@@ -95,9 +95,7 @@ export function ResourceForm({
       const res = await fetch("/api/resources", {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          isEdit ? { id: resource!.id, ...payload } : payload
-        ),
+        body: JSON.stringify(isEdit ? { id: resource!.id, ...payload } : payload),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Could not save resource.");
@@ -162,10 +160,7 @@ export function ResourceForm({
           </div>
 
           <div className="space-y-1.5">
-            <label
-              htmlFor="resource-description"
-              className="text-xs font-medium"
-            >
+            <label htmlFor="resource-description" className="text-xs font-medium">
               Description (optional)
             </label>
             <textarea
@@ -244,11 +239,7 @@ export function ResourceForm({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            disabled={busy}
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" disabled={busy} onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button disabled={busy || !canSave} onClick={() => save.mutate()}>

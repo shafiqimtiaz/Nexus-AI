@@ -7,10 +7,7 @@ const SELECT = "id, name, color";
 // GET /api/labels — both roles. All labels, alphabetical.
 export async function GET() {
   const db = createServerClient();
-  const { data, error } = await db
-    .from("labels")
-    .select(SELECT)
-    .order("name", { ascending: true });
+  const { data, error } = await db.from("labels").select(SELECT).order("name", { ascending: true });
   if (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
@@ -29,26 +26,15 @@ export async function POST(request: NextRequest) {
   }
 
   const name = body.name.trim();
-  const color =
-    typeof body.color === "string" && body.color.trim()
-      ? body.color.trim()
-      : null;
+  const color = typeof body.color === "string" && body.color.trim() ? body.color.trim() : null;
 
   const db = createServerClient();
-  const { data, error } = await db
-    .from("labels")
-    .insert({ name, color })
-    .select(SELECT)
-    .single();
+  const { data, error } = await db.from("labels").insert({ name, color }).select(SELECT).single();
 
   if (error) {
     // Unique violation — return the existing label instead of failing.
     if (error.code === "23505") {
-      const { data: existing } = await db
-        .from("labels")
-        .select(SELECT)
-        .eq("name", name)
-        .single();
+      const { data: existing } = await db.from("labels").select(SELECT).eq("name", name).single();
       if (existing) {
         return Response.json({ label: existing });
       }

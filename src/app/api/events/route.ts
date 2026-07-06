@@ -8,19 +8,10 @@ import type { EventType } from "@/lib/dashboard";
 const SELECT_COLUMNS =
   "id, title, description, event_type, start_time, end_time, source_platform, source_external_id, is_auto_detected, created_at";
 
-const EVENT_TYPES: readonly EventType[] = [
-  "exam",
-  "quiz",
-  "assignment",
-  "study_block",
-  "other",
-];
+const EVENT_TYPES: readonly EventType[] = ["exam", "quiz", "assignment", "study_block", "other"];
 
 function isEventType(value: unknown): value is EventType {
-  return (
-    typeof value === "string" &&
-    (EVENT_TYPES as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && (EVENT_TYPES as readonly string[]).includes(value);
 }
 
 // GET /api/events — both roles. With ?from=ISO&to=ISO returns events whose
@@ -31,10 +22,7 @@ export async function GET(request: NextRequest) {
   const from = request.nextUrl.searchParams.get("from");
   const to = request.nextUrl.searchParams.get("to");
 
-  let query = db
-    .from("events")
-    .select(SELECT_COLUMNS)
-    .order("start_time", { ascending: true });
+  let query = db.from("events").select(SELECT_COLUMNS).order("start_time", { ascending: true });
 
   if (from && to) {
     query = query.gte("start_time", from).lte("start_time", to);
@@ -126,10 +114,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (Object.keys(updates).length === 0) {
-    return Response.json(
-      { error: "No valid fields to update." },
-      { status: 400 }
-    );
+    return Response.json({ error: "No valid fields to update." }, { status: 400 });
   }
 
   const db = createServerClient();

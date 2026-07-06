@@ -92,9 +92,7 @@ export async function exchangeCode(code: string, requestUrl: string): Promise<To
 
 // Exchange a stored refresh_token for a fresh access_token. Google usually does
 // NOT return a new refresh_token here — the caller keeps the existing one.
-export async function refreshAccessToken(
-  refreshToken: string
-): Promise<RefreshResponse> {
+export async function refreshAccessToken(refreshToken: string): Promise<RefreshResponse> {
   const db = createServerClient();
   const { data } = await db.from("platforms").eq("type", "google_oauth").maybeSingle();
 
@@ -141,9 +139,7 @@ export async function getValidClassroomToken(): Promise<string> {
     throw new Error("Google Classroom is not connected.");
   }
 
-  const expiresAtMs = data.token_expires_at
-    ? new Date(data.token_expires_at).getTime()
-    : 0;
+  const expiresAtMs = data.token_expires_at ? new Date(data.token_expires_at).getTime() : 0;
 
   // Still comfortably valid — return the stored token as-is.
   if (expiresAtMs - Date.now() > EXPIRY_SKEW_MS) {
@@ -157,9 +153,7 @@ export async function getValidClassroomToken(): Promise<string> {
   }
 
   const refreshed = await refreshAccessToken(data.refresh_token);
-  const tokenExpiresAt = new Date(
-    Date.now() + refreshed.expires_in * 1000
-  ).toISOString();
+  const tokenExpiresAt = new Date(Date.now() + refreshed.expires_in * 1000).toISOString();
 
   const { error: updateError } = await db
     .from("platforms")
@@ -170,9 +164,7 @@ export async function getValidClassroomToken(): Promise<string> {
     .eq("type", "google_classroom");
 
   if (updateError) {
-    throw new Error(
-      `Failed to persist refreshed Google Classroom token: ${updateError.message}`
-    );
+    throw new Error(`Failed to persist refreshed Google Classroom token: ${updateError.message}`);
   }
 
   return refreshed.access_token;

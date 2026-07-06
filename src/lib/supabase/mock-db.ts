@@ -169,7 +169,7 @@ function loadDb(): DbSchema {
       return JSON.parse(fs.readFileSync(LOCAL_DB_PATH, "utf8"));
     } catch {}
   }
-  
+
   // Seed the database
   const seed = getInitialData();
   saveDb(seed);
@@ -178,7 +178,7 @@ function loadDb(): DbSchema {
 
 function saveDb(db: DbSchema) {
   const serialized = JSON.stringify(db, null, 2);
-  
+
   // Write only to /tmp to prevent writing sensitive credentials back into the Git-tracked db.json file
   try {
     const dir = path.dirname(TMP_DB_PATH);
@@ -337,15 +337,15 @@ export class MockSupabaseQueryBuilder {
       result.sort((a, b) => {
         const valA = a[this.orderCol!];
         const valB = b[this.orderCol!];
-        
+
         // Handle ISO string dates
         const timeA = Date.parse(valA);
         const timeB = Date.parse(valB);
-        
+
         if (!isNaN(timeA) && !isNaN(timeB)) {
           return this.orderAsc ? timeA - timeB : timeB - timeA;
         }
-        
+
         if (typeof valA === "string" && typeof valB === "string") {
           return this.orderAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
         }
@@ -362,24 +362,31 @@ export class MockSupabaseQueryBuilder {
       const rows = Array.isArray(this.payload) ? this.payload : [this.payload];
       const currentData = [...data];
       const insertedRows: any[] = [];
-      
+
       for (const row of rows) {
         let idx = -1;
         if (this.table === "platforms") {
-          idx = currentData.findIndex(item => item.type === row.type);
+          idx = currentData.findIndex((item) => item.type === row.type);
         } else if (this.table === "announcements") {
-          idx = currentData.findIndex(item => item.platform_id === row.platform_id && item.external_id === row.external_id);
+          idx = currentData.findIndex(
+            (item) => item.platform_id === row.platform_id && item.external_id === row.external_id
+          );
         } else if (this.table === "events") {
           // Keep unique assignments/exams
-          idx = currentData.findIndex(item => item.source_platform === row.source_platform && item.source_external_id === row.source_external_id && row.source_external_id);
+          idx = currentData.findIndex(
+            (item) =>
+              item.source_platform === row.source_platform &&
+              item.source_external_id === row.source_external_id &&
+              row.source_external_id
+          );
         }
-        
+
         const newRow = {
           id: row.id || (idx !== -1 ? currentData[idx].id : crypto.randomUUID()),
           created_at: idx !== -1 ? currentData[idx].created_at : new Date().toISOString(),
-          ...row
+          ...row,
         };
-        
+
         if (idx !== -1) {
           currentData[idx] = newRow;
         } else {
@@ -387,37 +394,37 @@ export class MockSupabaseQueryBuilder {
         }
         insertedRows.push(newRow);
       }
-      
+
       writeTable(this.table, currentData);
       return { data: Array.isArray(this.payload) ? insertedRows : insertedRows[0], error: null };
     }
 
     if (this.isInsert) {
       const rows = Array.isArray(this.payload) ? this.payload : [this.payload];
-      const insertedRows = rows.map(row => ({
+      const insertedRows = rows.map((row) => ({
         id: row.id || crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        ...row
+        ...row,
       }));
       writeTable(this.table, [...data, ...insertedRows]);
       return { data: Array.isArray(this.payload) ? insertedRows : insertedRows[0], error: null };
     }
 
     if (this.isUpdate) {
-      const updatedList = data.map(item => {
-        const matches = this.filters.every(f => f(item));
+      const updatedList = data.map((item) => {
+        const matches = this.filters.every((f) => f(item));
         if (matches) {
           return { ...item, ...this.payload, updated_at: new Date().toISOString() };
         }
         return item;
       });
       writeTable(this.table, updatedList);
-      const updatedRows = updatedList.filter(item => this.filters.every(f => f(item)));
+      const updatedRows = updatedList.filter((item) => this.filters.every((f) => f(item)));
       return { data: single ? updatedRows[0] : updatedRows, error: null };
     }
 
     if (this.isDelete) {
-      const remaining = data.filter(item => !this.filters.every(f => f(item)));
+      const remaining = data.filter((item) => !this.filters.every((f) => f(item)));
       writeTable(this.table, remaining);
       return { data: null, error: null };
     }
@@ -426,18 +433,18 @@ export class MockSupabaseQueryBuilder {
     if (this.table === "resources" && result.length > 0) {
       const rlData = readTable("resource_labels");
       const labels = readTable("labels");
-      
-      result = result.map(resource => {
+
+      result = result.map((resource) => {
         const rLabels = rlData
-          .filter(rl => rl.resource_id === resource.id)
-          .map(rl => {
-            const labelObj = labels.find(l => l.id === rl.label_id);
+          .filter((rl) => rl.resource_id === resource.id)
+          .map((rl) => {
+            const labelObj = labels.find((l) => l.id === rl.label_id);
             return labelObj ? { label: labelObj } : null;
           })
           .filter(Boolean);
         return {
           ...resource,
-          labels: rLabels
+          labels: rLabels,
         };
       });
     }

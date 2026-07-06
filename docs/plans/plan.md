@@ -9,6 +9,7 @@
 **Architecture:** Next.js full-stack app; Supabase (Postgres + Auth, RLS, server-only access); Vercel AI SDK + Gemini for the agent; in-repo MCP server for Google Classroom; Discord via bot token as in-process tool. Deployed on Vercel. Public read-only demo mode for judges.
 
 **Tech Stack:**
+
 - **Framework:** Next.js (App Router) — already scaffolded
 - **UI:** shadcn/ui + Tailwind CSS (white/green/black theme)
 - **Database/Auth:** Supabase (Postgres + Supabase Auth, single owner)
@@ -28,6 +29,7 @@
 ### Task 0.2: Supabase schema + clients
 
 **Files:**
+
 - Create: `src/lib/supabase/server.ts` (server client, service role — **no browser client**)
 - Create: `supabase/migrations/001_initial_schema.sql`
 
@@ -109,6 +111,7 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ```
 
 **Steps:**
+
 1. Run migration in Supabase dashboard
 2. `server.ts`: service-role client, `import 'server-only'` guard so it can never be bundled client-side
 3. Env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (NOT `NEXT_PUBLIC_*`), document in `.env.example`
@@ -117,6 +120,7 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ### Task 0.3: Auth + demo mode + layout
 
 **Files:**
+
 - Create: `src/proxy.ts` (session check — Next 16 renamed `middleware.ts` → `proxy.ts`, export `function proxy(request)`)
 - Create: `src/app/login/page.tsx`
 - Create: `src/lib/auth.ts` (`getSession()` helper → `{ role: 'owner' | 'demo' }`)
@@ -124,6 +128,7 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 - Create: `supabase/seed.sql` (demo data: sample announcements, events, resources)
 
 **Steps:**
+
 1. Enable Supabase Auth (email/password), create the single owner account manually; disable signups
 2. `getSession()`: authenticated owner → full access; unauthenticated → `demo` role
 3. Demo role: all pages render (read-only), every mutation route returns 403, chat disabled with banner "Demo mode — watch the video for the agent in action"; demo banner in header with login link
@@ -137,11 +142,13 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ### Task 1.1: Options page
 
 **Files:**
+
 - Create: `src/app/options/page.tsx`
 - Create: `src/components/options/platform-card.tsx`
 - Create: `src/app/api/platforms/route.ts`
 
 **Steps:**
+
 1. Two platform cards: Google Classroom (Connect via Google button), Discord (bot token + channel ID form)
 2. Show connection status + `last_synced_at`; disconnect button wipes tokens
 3. Discord card: POST token+channel to server, server validates with a test API call (`GET /channels/{id}`) before saving
@@ -150,10 +157,12 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ### Task 1.2: Google OAuth (Classroom scopes)
 
 **Files:**
+
 - Create: `src/app/api/auth/google/route.ts` + `src/app/api/auth/google/callback/route.ts`
 - Create: `src/lib/auth/google-oauth.ts` (token exchange + refresh)
 
 **Steps:**
+
 1. Google Cloud Console: OAuth client, redirect URIs (localhost + Vercel domain), scopes: `classroom.courses.readonly`, `classroom.announcements.readonly`, `classroom.coursework.me.readonly`, `classroom.courseworkmaterials.readonly`; add owner as test user (unverified app is fine)
 2. Authorization code flow with `access_type=offline&prompt=consent` (need refresh token)
 3. Store tokens in `platforms`; implement refresh-on-expiry helper used by all Classroom calls
@@ -167,6 +176,7 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ### Task 2.1: Google Classroom MCP server (in-repo)
 
 **Files:**
+
 - Create: `mcp/classroom/server.ts` (MCP server via `@modelcontextprotocol/sdk`)
 - Create: `mcp/classroom/tools.ts`
 - Create: `src/lib/ai/mcp-client.ts` (AI SDK connects to it)
@@ -174,6 +184,7 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 **Tools exposed:** `list_announcements`, `list_assignments`, `list_materials`, `get_class_info`
 
 **Steps:**
+
 1. MCP server with the four tools hitting the Classroom REST API; reads OAuth token via the refresh helper (same process — no network token hand-off)
 2. Run in-repo: stdio transport spawned by the Next.js backend (or HTTP transport on an internal route) — pick whichever the AI SDK's MCP client (`experimental_createMCPClient` or current equivalent — check installed `ai` pkg docs) supports cleanly
 3. Verify: script calls `list_announcements` through the MCP client, real Classroom data returns
@@ -181,10 +192,12 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ### Task 2.2: Discord tool + sync endpoint
 
 **Files:**
+
 - Create: `src/lib/platforms/discord.ts` (fetch channel messages + pins via bot token)
 - Create: `src/app/api/sync/route.ts`
 
 **Steps:**
+
 1. Discord REST: `GET /channels/{id}/messages?limit=50`, `GET /channels/{id}/pins` with `Authorization: Bot <token>` (bot must be invited to server with Message Content intent enabled — document in README)
 2. `/api/sync`: skip if `last_synced_at` < 15 min (unless `?force=1`); else pull Classroom announcements+assignments (via MCP tools) and Discord messages; upsert `announcements` on `(platform_id, external_id)`; upsert assignment due dates into `events` as `is_auto_detected` on `(source_platform, source_external_id)`; update `last_synced_at`
 3. Dashboard triggers sync fire-and-forget on load; "Sync now" button forces
@@ -197,21 +210,24 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ### Task 3.1: Chat core
 
 **Files:**
+
 - Create: `src/app/chat/page.tsx`, `src/components/chat/chat-interface.tsx`, `src/components/chat/tool-call-display.tsx`
 - Create: `src/app/api/chat/route.ts` (AI SDK `streamText`, Gemini)
 - Create: `src/lib/ai/tools.ts`, `src/lib/ai/system-prompt.ts`
 
 **Agent tools:**
-| Tool | Backing |
-|------|---------|
-| `summarize_announcements` | reads synced `announcements` (+ live MCP fetch when asked) |
-| `get_upcoming_events` / `create_event` / `edit_event` | Supabase `events` |
-| `search_resources` / `add_resource` | Supabase `resources` |
-| `generate_study_plan` | reads upcoming exams → creates `study_block` events |
-| `set_reminder` | creates reminder event |
-| Classroom MCP tools | attached via MCP client (this is the scored MCP integration) |
+
+| Tool                                                  | Backing                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| `summarize_announcements`                             | reads synced `announcements` (+ live MCP fetch when asked)   |
+| `get_upcoming_events` / `create_event` / `edit_event` | Supabase `events`                                            |
+| `search_resources` / `add_resource`                   | Supabase `resources`                                         |
+| `generate_study_plan`                                 | reads upcoming exams → creates `study_block` events          |
+| `set_reminder`                                        | creates reminder event                                       |
+| Classroom MCP tools                                   | attached via MCP client (this is the scored MCP integration) |
 
 **Steps:**
+
 1. `/api/chat`: `streamText` with Gemini (`GOOGLE_GENERATIVE_AI_API_KEY` env), tools above + MCP client tools, multi-step tool calling enabled
 2. System prompt: student context, connected platforms, today's date, tool usage guidance
 3. Chat UI: streaming messages, visible tool-call chips (judges must SEE agentic behavior)
@@ -225,10 +241,12 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ### Task 4.1: Dashboard page
 
 **Files:**
+
 - Create: `src/app/page.tsx` + `src/components/dashboard/{upcoming-events,todays-schedule,quick-stats,recent-announcements,pinned-resources}.tsx`
 - Create: `src/app/api/dashboard/route.ts`
 
 **Steps:**
+
 1. Server component renders cached data instantly; client triggers `/api/sync` in background, refreshes on completion
 2. Widgets: next-7-days exams/quizzes w/ countdown; today's events; stats (days to next exam, unread count); last 5 announcements; pinned resources
 3. Responsive grid, skeletons, empty states
@@ -239,11 +257,13 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ## Phase 5: Calendar + Resources (cuttable if behind)
 
 ### Task 5.1: Calendar page
+
 - `src/app/calendar/page.tsx`, `src/components/calendar/{month-grid,event-form}.tsx`, `src/app/api/events/route.ts`
 - Custom month grid (CSS grid, 42 cells) + upcoming list; color-coded by type; create/edit dialog
 - Verify: manual + agent-created + auto-detected events all render
 
 ### Task 5.2: Resources page
+
 - `src/app/resources/page.tsx`, `src/components/resources/{resource-card,resource-form,label-filter}.tsx`, `src/app/api/resources/route.ts`
 - Card list, add/edit form with labels, label filter, title/label search, pin toggle
 - Verify: add, filter, search, pin → shows on dashboard
@@ -253,15 +273,18 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ## Phase 6: Submission Assets (NEVER cut — ~5h)
 
 ### Task 6.1: Deploy
+
 1. Secret scan: `git log -p | grep -iE 'api[_-]?key|secret|token'` — nothing committed (hard rubric rule)
 2. Vercel: connect repo, set env vars, deploy; update Google OAuth redirect URI to prod domain
 3. Seed demo data in prod; verify logged-out URL shows demo mode with **no login required** (rubric requirement)
 4. E2E on prod: login → connect platforms → sync → chat with tool calls → dashboard populated
 
 ### Task 6.2: README (20 pts)
+
 Problem, solution, architecture diagram (data-flow from spec §8), rubric-concept mapping table, setup instructions (env vars, Supabase migration, Discord bot invite w/ Message Content intent, Google OAuth setup), deploy reproduction steps. Code comments on design/behavior per rubric.
 
 ### Task 6.3: Video (≤5 min, YouTube) + Writeup (≤2,500 words)
+
 Video: problem (30s) → why agents (30s) → architecture (60s) → live demo: connect, sync, chat w/ visible MCP tool calls, dashboard (2.5min) → build story incl. **Antigravity workflow on screen** (30s).
 Writeup: Kaggle Writeup, Concierge track, cover image, video + project link + repo link attached. **Submit before 11:59 PM PT — drafts don't count.**
 
@@ -278,5 +301,6 @@ Auth/DB   Options  MCP+  Agent  Dash  Cal/Res  Deploy+
 **Demo-critical path:** Options → connect Classroom → sync → chat agent calls MCP tools → dashboard. Everything else supports it.
 
 ## Verification
+
 - After each phase: `npm run build` clean + manual browser test
 - E2E: connect Classroom + Discord → sync → agent summarizes (MCP call visible) → agent creates event → dashboard + calendar show it → logged-out demo mode works with no login

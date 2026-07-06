@@ -2,12 +2,7 @@ import "server-only";
 import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
 import { createServerClient } from "@/lib/supabase/server";
 
-export type EventType =
-  | "exam"
-  | "quiz"
-  | "assignment"
-  | "study_block"
-  | "other";
+export type EventType = "exam" | "quiz" | "assignment" | "study_block" | "other";
 
 export type DashboardEvent = {
   id: string;
@@ -49,9 +44,7 @@ const SNIPPET_LEN = 200;
 
 function truncate(text: string): string {
   const trimmed = text.trim();
-  return trimmed.length > SNIPPET_LEN
-    ? `${trimmed.slice(0, SNIPPET_LEN).trimEnd()}…`
-    : trimmed;
+  return trimmed.length > SNIPPET_LEN ? `${trimmed.slice(0, SNIPPET_LEN).trimEnd()}…` : trimmed;
 }
 
 // Single aggregated read used by both the dashboard page (server component) and
@@ -97,10 +90,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .order("start_time", { ascending: true })
       .limit(1)
       .maybeSingle(),
-    db
-      .from("announcements")
-      .select("id", { count: "exact", head: true })
-      .eq("is_read", false),
+    db.from("announcements").select("id", { count: "exact", head: true }).eq("is_read", false),
     db
       .from("events")
       .select("id", { count: "exact", head: true })
@@ -111,18 +101,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select("id, title, content, author, source_url, announced_at")
       .order("announced_at", { ascending: false, nullsFirst: false })
       .limit(5),
-    db
-      .from("resources")
-      .select("id, title, url, description")
-      .eq("is_pinned", true)
-      .limit(6),
+    db.from("resources").select("id, title, url, description").eq("is_pinned", true).limit(6),
   ]);
 
   const daysToNextExam = nextExamRes.data?.start_time
-    ? Math.max(
-        0,
-        differenceInCalendarDays(new Date(nextExamRes.data.start_time), now)
-      )
+    ? Math.max(0, differenceInCalendarDays(new Date(nextExamRes.data.start_time), now))
     : null;
 
   return {

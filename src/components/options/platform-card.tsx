@@ -51,12 +51,8 @@ function formatSynced(iso: string | null): string {
 
 function SlackIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      {...props}
-    >
-      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523 2.528 2.528 0 0 1-2.522-2.523 2.528 2.528 0 0 1 2.522-2.52h2.52v2.52zm1.261 0a2.528 2.528 0 0 1 2.52-2.52h5.043a2.528 2.528 0 0 1 2.522 2.52v5.043a2.528 2.528 0 0 1-2.522 2.52H8.823a2.528 2.528 0 0 1-2.52-2.52v-5.043zm2.52-10.123a2.528 2.528 0 0 1-2.52-2.522A2.528 2.528 0 0 1 8.823 0a2.528 2.528 0 0 1 2.52 2.52v2.522h-2.52zm0 1.261a2.528 2.528 0 0 1 2.52 2.52v5.043a2.528 2.528 0 0 1-2.52 2.522H3.78a2.528 2.528 0 0 1-2.522-2.522V8.823a2.528 2.528 0 0 1 2.522-2.52h5.043zm10.123 2.52a2.528 2.528 0 0 1 2.522-2.52 2.528 2.528 0 0 1 2.52 2.52 2.528 2.528 0 0 1-2.52 2.522h-2.52v-2.522zm-1.261 0a2.528 2.528 0 0 1-2.522 2.52h-5.043a2.528 2.528 0 0 1-2.52-2.52V3.78a2.528 2.528 0 0 1 2.52-2.522h5.043a2.528 2.528 0 0 1 2.522 2.522v5.043zm-2.52 10.123a2.528 2.528 0 0 1 2.52 2.522a2.528 2.528 0 0 1-2.52 2.522 2.528 2.528 0 0 1-2.522-2.522v-2.522h2.522zm0-1.261a2.528 2.528 0 0 1-2.522-2.52v-5.043a2.528 2.528 0 0 1 2.522-2.52h5.043a2.528 2.528 0 0 1 2.52 2.52v5.043a2.528 2.528 0 0 1-2.52 2.52H15.18z"/>
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523 2.528 2.528 0 0 1-2.522-2.523 2.528 2.528 0 0 1 2.522-2.52h2.52v2.52zm1.261 0a2.528 2.528 0 0 1 2.52-2.52h5.043a2.528 2.528 0 0 1 2.522 2.52v5.043a2.528 2.528 0 0 1-2.522 2.52H8.823a2.528 2.528 0 0 1-2.52-2.52v-5.043zm2.52-10.123a2.528 2.528 0 0 1-2.52-2.522A2.528 2.528 0 0 1 8.823 0a2.528 2.528 0 0 1 2.52 2.52v2.522h-2.52zm0 1.261a2.528 2.528 0 0 1 2.52 2.52v5.043a2.528 2.528 0 0 1-2.52 2.522H3.78a2.528 2.528 0 0 1-2.522-2.522V8.823a2.528 2.528 0 0 1 2.522-2.52h5.043zm10.123 2.52a2.528 2.528 0 0 1 2.522-2.52 2.528 2.528 0 0 1 2.52 2.52 2.528 2.528 0 0 1-2.52 2.522h-2.52v-2.522zm-1.261 0a2.528 2.528 0 0 1-2.522 2.52h-5.043a2.528 2.528 0 0 1-2.52-2.52V3.78a2.528 2.528 0 0 1 2.52-2.522h5.043a2.528 2.528 0 0 1 2.522 2.522v5.043zm-2.52 10.123a2.528 2.528 0 0 1 2.52 2.522a2.528 2.528 0 0 1-2.52 2.522 2.528 2.528 0 0 1-2.522-2.522v-2.522h2.522zm0-1.261a2.528 2.528 0 0 1-2.522-2.52v-5.043a2.528 2.528 0 0 1 2.522-2.52h5.043a2.528 2.528 0 0 1 2.52 2.52v5.043a2.528 2.528 0 0 1-2.52 2.52H15.18z" />
     </svg>
   );
 }
@@ -76,10 +72,10 @@ export function PlatformCard({
     type === "google_classroom"
       ? GraduationCap
       : type === "slack"
-      ? SlackIcon
-      : type === "gemini"
-      ? Sparkles
-      : MessageSquare;
+        ? SlackIcon
+        : type === "gemini"
+          ? Sparkles
+          : MessageSquare;
   const queryClient = useQueryClient();
   const isDemo = role === "demo";
 
@@ -185,11 +181,7 @@ export function PlatformCard({
   });
 
   const connectBot =
-    type === "gemini"
-      ? connectGemini
-      : type === "slack"
-      ? connectSlack
-      : connectDiscord;
+    type === "gemini" ? connectGemini : type === "slack" ? connectSlack : connectDiscord;
   const isSlack = type === "slack";
 
   const disconnect = useMutation({
@@ -300,7 +292,8 @@ export function PlatformCard({
                   </>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    Google OAuth is configured globally by the platform. You can connect your Classroom account directly below.
+                    Google OAuth is configured globally by the platform. You can connect your
+                    Classroom account directly below.
                   </p>
                 )}
               </div>
@@ -313,9 +306,7 @@ export function PlatformCard({
                   disabled={isDemo || disconnect.isPending}
                   onClick={() => disconnect.mutate()}
                 >
-                  {disconnect.isPending && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
+                  {disconnect.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   Disconnect
                 </Button>
               ) : (
@@ -323,9 +314,7 @@ export function PlatformCard({
                   disabled={isDemo || connectGoogleOauth.isPending}
                   onClick={() => connectGoogleOauth.mutate()}
                 >
-                  {connectGoogleOauth.isPending && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
+                  {connectGoogleOauth.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   Connect Google Classroom
                 </Button>
               )}
@@ -334,7 +323,9 @@ export function PlatformCard({
         ) : (
           <div className="space-y-3">
             {!connected && (
-              <div className={cn("grid gap-3", type === "gemini" ? "grid-cols-1" : "sm:grid-cols-2")}>
+              <div
+                className={cn("grid gap-3", type === "gemini" ? "grid-cols-1" : "sm:grid-cols-2")}
+              >
                 <div className="space-y-1.5">
                   <label
                     htmlFor="bot-token"
@@ -348,11 +339,7 @@ export function PlatformCard({
                     type="password"
                     autoComplete="off"
                     placeholder={
-                      type === "gemini"
-                        ? "AIzaSy..."
-                        : isSlack
-                        ? "xoxb-..."
-                        : "Bot token"
+                      type === "gemini" ? "AIzaSy..." : isSlack ? "xoxb-..." : "Bot token"
                     }
                     value={botToken}
                     disabled={isDemo || connectBot.isPending}
@@ -387,9 +374,7 @@ export function PlatformCard({
                   disabled={isDemo || disconnect.isPending}
                   onClick={() => disconnect.mutate()}
                 >
-                  {disconnect.isPending && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
+                  {disconnect.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   Disconnect
                 </Button>
               ) : (
@@ -402,9 +387,7 @@ export function PlatformCard({
                   }
                   onClick={() => connectBot.mutate()}
                 >
-                  {connectBot.isPending && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
+                  {connectBot.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   Connect
                 </Button>
               )}
@@ -412,11 +395,7 @@ export function PlatformCard({
           </div>
         )}
 
-        {isDemo && (
-          <p className="text-xs text-muted-foreground">
-            Log in to manage connections.
-          </p>
-        )}
+        {isDemo && <p className="text-xs text-muted-foreground">Log in to manage connections.</p>}
       </CardContent>
     </Card>
   );

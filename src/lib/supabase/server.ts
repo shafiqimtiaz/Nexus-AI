@@ -4,21 +4,22 @@ import { cookies } from "next/headers";
 import { MockSupabaseQueryBuilder } from "./mock-db";
 
 export function createServerClient() {
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   // If Supabase keys are not set, fall back to mock database immediately
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !anonKey) {
     return {
       from(table: string) {
         return new MockSupabaseQueryBuilder(table);
-      }
+      },
     } as any;
   }
 
   return {
     from(table: string) {
       const calls: { prop: string | symbol; args: any[] }[] = [];
-      
+
       const builderProxy = new Proxy({} as any, {
         get(target, prop, receiver) {
           // If the caller awaits the promise, resolve the client dynamically
@@ -28,8 +29,8 @@ export function createServerClient() {
                 try {
                   const cookieStore = await cookies();
                   // Check if there is an active Supabase session cookie
-                  const hasSession = cookieStore.getAll().some(c => c.name.startsWith("sb-"));
-                  
+                  const hasSession = cookieStore.getAll().some((c) => c.name.startsWith("sb-"));
+
                   let client: any;
                   if (hasSession) {
                     client = createSupabaseServerClient(
@@ -46,8 +47,8 @@ export function createServerClient() {
                                 cookieStore.set(name, value, options)
                               );
                             } catch {}
-                          }
-                        }
+                          },
+                        },
                       }
                     ).from(table);
                   } else {
@@ -59,7 +60,7 @@ export function createServerClient() {
                   for (const call of calls) {
                     current = current[call.prop](...call.args);
                   }
-                  
+
                   const result = await current;
                   resolve(result);
                 } catch (err) {
@@ -74,10 +75,10 @@ export function createServerClient() {
             calls.push({ prop, args });
             return builderProxy;
           };
-        }
+        },
       });
 
       return builderProxy;
-    }
+    },
   } as any;
 }

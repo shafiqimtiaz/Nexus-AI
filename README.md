@@ -1,6 +1,6 @@
 # Nexus 🚀
 
-Nexus is an **AI-powered personal academic organizer** that centralizes announcements, calendar events, resources, and an agentic AI chat into a single, unified workspace. 
+Nexus is an **AI-powered personal academic organizer** that centralizes announcements, calendar events, resources, and an agentic AI chat into a single, unified workspace.
 
 Designed specifically for students, it integrates directly with Google Classroom (via Google OAuth) and Discord channels (via bot tokens), automatically parsing data to build calendar events, summarize announcements, organize resource links, and generate multi-day study blocks.
 
@@ -9,6 +9,7 @@ Nexus was developed for the **Kaggle 5-Day AI Agents Intensive Vibe Coding Capst
 ---
 
 ## 📖 Table of Contents
+
 1. [Core Features](#-core-features)
 2. [Rubric Concept Demonstration](#-rubric-concept-demonstration)
 3. [Architecture & Data Flow](#-architecture--data-flow)
@@ -23,13 +24,13 @@ Nexus was developed for the **Kaggle 5-Day AI Agents Intensive Vibe Coding Capst
 
 ## ✨ Core Features
 
-*   **Aggregated Dashboard:** Displays upcoming assessments (with active countdowns), today's study blocks, stats (e.g. unread count, days to next exam), and pinned resource links.
-*   **Agentic AI Chat:** A multi-step tool-calling assistant backed by **Gemini 2.5 Flash**. The agent can read course data, create/modify study blocks, search resource links, parse announcements for quiz dates, and automatically save resources.
-*   **Classroom & Discord Integration:** Automatically fetches Classroom course materials/assignments and Discord channel announcements.
-*   **Stale-While-Revalidate Syncing:** Ingests platform messages on-load without hitting rate limits, using a smart 15-minute cached ingestion loop.
-*   **Lightweight Academic Calendar:** Custommonth-view and listing component built for tracking exam events, quizzes, and agent-generated study blocks.
-*   **Resource Library:** Save, search, filter, and label academic resource links (Google Drives, PDF links, lectures).
-*   **Demo Mode (Concierge Gated):** Provides an unauthenticated read-only mock dashboard and calendar with pre-seeded sample data for judges, preventing access to the owner's OAuth tokens.
+- **Aggregated Dashboard:** Displays upcoming assessments (with active countdowns), today's study blocks, stats (e.g. unread count, days to next exam), and pinned resource links.
+- **Agentic AI Chat:** A multi-step tool-calling assistant backed by **Gemini 2.5 Flash**. The agent can read course data, create/modify study blocks, search resource links, parse announcements for quiz dates, and automatically save resources.
+- **Classroom & Discord Integration:** Automatically fetches Classroom course materials/assignments and Discord channel announcements.
+- **Stale-While-Revalidate Syncing:** Ingests platform messages on-load without hitting rate limits, using a smart 15-minute cached ingestion loop.
+- **Lightweight Academic Calendar:** Custommonth-view and listing component built for tracking exam events, quizzes, and agent-generated study blocks.
+- **Resource Library:** Save, search, filter, and label academic resource links (Google Drives, PDF links, lectures).
+- **Demo Mode (Concierge Gated):** Provides an unauthenticated read-only mock dashboard and calendar with pre-seeded sample data for judges, preventing access to the owner's OAuth tokens.
 
 ---
 
@@ -37,13 +38,13 @@ Nexus was developed for the **Kaggle 5-Day AI Agents Intensive Vibe Coding Capst
 
 Nexus demonstrates key agentic capabilities across the Kaggle hackathon requirements:
 
-| Rubric Concept | Demonstrated in | Technical Implementation |
-|:---|:---|:---|
-| **MCP Server** | Code | An in-repo Google Classroom MCP server using the `@modelcontextprotocol/sdk`. The Next.js API route communicates with this local server over an in-memory transport bridge, mapping Classroom announcements, coursework, and materials directly to tool schemas. |
-| **Antigravity Workflow** | Video / Process | Development tasks were organized and tracked using `/docs/plans/spec.md`, `plan.md`, and `task.md`. Code iterations and dependency upgrades were managed inside the custom sandboxed workspace. |
-| **Security Features** | Code / Video | Hardened auth system using **Supabase Auth** with RLS policies denying all public/authenticated client-side requests. All database interactions run server-side via the service-role client. Stored OAuth and Discord tokens never leave the server. Search queries are sanitized against PostgREST injection. |
-| **Deployability** | Video / Config | Fully configured for **Vercel** with comprehensive instructions to deploy the database migrations, set environment variables, and configure production OAuth callbacks. |
-| **Agent Skills** | Code | Custom toolsets in `src/lib/ai/tools.ts` for managing calendar CRUD, resources indexing, and multi-day study plan generation. |
+| Rubric Concept           | Demonstrated in | Technical Implementation                                                                                                                                                                                                                                                                                       |
+| :----------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **MCP Server**           | Code            | An in-repo Google Classroom MCP server using the `@modelcontextprotocol/sdk`. The Next.js API route communicates with this local server over an in-memory transport bridge, mapping Classroom announcements, coursework, and materials directly to tool schemas.                                               |
+| **Antigravity Workflow** | Video / Process | Development tasks were organized and tracked using `/docs/plans/spec.md`, `plan.md`, and `task.md`. Code iterations and dependency upgrades were managed inside the custom sandboxed workspace.                                                                                                                |
+| **Security Features**    | Code / Video    | Hardened auth system using **Supabase Auth** with RLS policies denying all public/authenticated client-side requests. All database interactions run server-side via the service-role client. Stored OAuth and Discord tokens never leave the server. Search queries are sanitized against PostgREST injection. |
+| **Deployability**        | Video / Config  | Fully configured for **Vercel** with comprehensive instructions to deploy the database migrations, set environment variables, and configure production OAuth callbacks.                                                                                                                                        |
+| **Agent Skills**         | Code            | Custom toolsets in `src/lib/ai/tools.ts` for managing calendar CRUD, resources indexing, and multi-day study plan generation.                                                                                                                                                                                  |
 
 ---
 
@@ -102,12 +103,13 @@ Nexus uses Supabase (PostgreSQL) for all storage.
 Apply the migration script located at `supabase/migrations/001_initial_schema.sql` to initialize your database.
 
 This will create:
-*   `platforms`: Storing token credentials, channel targets, and sync metadata.
-*   `announcements`: Caching ingested alerts from Google Classroom and Discord (uniquely index-deduped).
-*   `events`: Academic dates, assignments, exams, and study blocks.
-*   `resources` & `labels`: A taggable bookmarks repository for academic links.
 
-*Note: Row Level Security (RLS) is enabled on all tables. Since the web client accesses everything via Next.js server actions / API endpoints using the service role client, standard browser access to Supabase is disabled by design for security.*
+- `platforms`: Storing token credentials, channel targets, and sync metadata.
+- `announcements`: Caching ingested alerts from Google Classroom and Discord (uniquely index-deduped).
+- `events`: Academic dates, assignments, exams, and study blocks.
+- `resources` & `labels`: A taggable bookmarks repository for academic links.
+
+_Note: Row Level Security (RLS) is enabled on all tables. Since the web client accesses everything via Next.js server actions / API endpoints using the service role client, standard browser access to Supabase is disabled by design for security._
 
 To seed the initial mock data for Demo Mode, run the SQL script in `supabase/seed.sql` inside the Supabase SQL editor.
 
@@ -116,23 +118,25 @@ To seed the initial mock data for Demo Mode, run the SQL script in `supabase/see
 ## 🔌 External Platform Integration Setup
 
 ### 1. Google Cloud Console (Google Classroom API)
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/).
 2. Create a new project and enable the **Google Classroom API**.
 3. Configure the **OAuth Consent Screen** (User type: External, Publishing status: Testing).
 4. Add your personal Google account as a **Test User** (since the app is unverified).
 5. Create **OAuth Client Credentials** (Web Application).
 6. Set the authorized redirect URIs to:
-   *   Local: `http://localhost:3000/api/auth/google/callback`
-   *   Prod: `https://your-app-domain.vercel.app/api/auth/google/callback`
+   - Local: `http://localhost:3000/api/auth/google/callback`
+   - Prod: `https://your-app-domain.vercel.app/api/auth/google/callback`
 7. Copy the client ID and secret into your env configuration.
 
 ### 2. Discord Bot Setup
+
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
 2. Create a new Application, navigate to the **Bot** tab, and copy your Bot Token.
 3. Scroll down to **Privileged Gateway Intents** and enable **Message Content Intent** (required to read announcements).
 4. Go to **OAuth2 -> URL Generator**:
-   *   Scopes: `bot`
-   *   Bot Permissions: `Read Messages/View Channels`, `Read Message History`
+   - Scopes: `bot`
+   - Bot Permissions: `Read Messages/View Channels`, `Read Message History`
 5. Generate the invite URL, paste it into your browser, and add the bot to your target Discord server.
 6. Copy the Channel ID of the announcements channel where you want the bot to sync messages.
 
@@ -141,12 +145,14 @@ To seed the initial mock data for Demo Mode, run the SQL script in `supabase/see
 ## 💻 Getting Started (Local Development)
 
 1.  **Clone the Repository:**
+
     ```bash
     git clone https://github.com/shafiqimtiaz/Nexus-AI.git
     cd Nexus-AI
     ```
 
 2.  **Install Dependencies:**
+
     ```bash
     npm install
     ```
@@ -179,36 +185,42 @@ Nexus is designed to deploy seamlessly to Vercel:
 Once the app is running and your database is configured:
 
 ### 1. Account Access & Setup
-*   **Sign In:** Navigate to `/login` and enter your owner email and password (configured during Supabase setup).
-*   **Demo Mode Check:** If you are not signed in, you will browse mock data in read-only mode.
+
+- **Sign In:** Navigate to `/login` and enter your owner email and password (configured during Supabase setup).
+- **Demo Mode Check:** If you are not signed in, you will browse mock data in read-only mode.
 
 ### 2. Configure Platforms
-*   Go to the **Options** page.
-*   **Google Classroom:** Click **Connect Google Account**, complete the OAuth flow, choose your target academic course, and save.
-*   **Discord:** Paste your Discord bot token and announcements Channel ID, then click **Connect Bot**.
+
+- Go to the **Options** page.
+- **Google Classroom:** Click **Connect Google Account**, complete the OAuth flow, choose your target academic course, and save.
+- **Discord:** Paste your Discord bot token and announcements Channel ID, then click **Connect Bot**.
 
 ### 3. Sync Announcements & Calendar
-*   Visit the **Dashboard**. Nexus automatically triggers a sync of new assignments and announcements.
-*   Alternatively, click the **Sync Now** button on the Dashboard.
-*   Synced assignments are auto-converted into calendar events (marked `is_auto_detected`).
+
+- Visit the **Dashboard**. Nexus automatically triggers a sync of new assignments and announcements.
+- Alternatively, click the **Sync Now** button on the Dashboard.
+- Synced assignments are auto-converted into calendar events (marked `is_auto_detected`).
 
 ### 4. Talk to the Agent
-*   Go to the **AI Chat** page.
-*   Ask: `"Summarize announcements"` to read recent posts from Classroom and Discord.
-*   Ask: `"Create a study block for Math exam this Friday from 2 PM to 4 PM"` — the agent calls database tools and places it on your calendar.
-*   Ask: `"Find resources about algorithms"` or `"Save a resource link http://example.com with label Exam"` to index links.
-*   Ask: `"Generate a study plan for my upcoming biology test on July 10"` to let the agent auto-populate multi-day calendar blocks.
+
+- Go to the **AI Chat** page.
+- Ask: `"Summarize announcements"` to read recent posts from Classroom and Discord.
+- Ask: `"Create a study block for Math exam this Friday from 2 PM to 4 PM"` — the agent calls database tools and places it on your calendar.
+- Ask: `"Find resources about algorithms"` or `"Save a resource link http://example.com with label Exam"` to index links.
+- Ask: `"Generate a study plan for my upcoming biology test on July 10"` to let the agent auto-populate multi-day calendar blocks.
 
 ### 5. Calendar & Resources Management
-*   **Calendar:** View exams, assignments, and study blocks on the month grid. Click any day to manually create academic events.
-*   **Resources:** Create label tags, search bookmarks by keyword, toggle pin status, and filter bookmarks using labels.
+
+- **Calendar:** View exams, assignments, and study blocks on the month grid. Click any day to manually create academic events.
+- **Resources:** Create label tags, search bookmarks by keyword, toggle pin status, and filter bookmarks using labels.
 
 ---
 
 ## 🔒 Public Demo Mode
 
 To allow Kaggle judges to review the application without requiring OAuth connections or leaking personal student data:
-*   When visiting the URL without logging in, the app operates in a secure **Read-Only Demo Mode**.
-*   This mode displays pre-seeded mock announcements, assessments, and study calendar cells.
-*   Mutations (creating/deleting resources or events) and the live AI chat widget are disabled in this mode, preventing API key/token usage by unauthenticated visitors.
-*   To test full capabilities locally or in production, navigate to `/login` and sign in with the owner credentials configured in your Supabase Auth panel.
+
+- When visiting the URL without logging in, the app operates in a secure **Read-Only Demo Mode**.
+- This mode displays pre-seeded mock announcements, assessments, and study calendar cells.
+- Mutations (creating/deleting resources or events) and the live AI chat widget are disabled in this mode, preventing API key/token usage by unauthenticated visitors.
+- To test full capabilities locally or in production, navigate to `/login` and sign in with the owner credentials configured in your Supabase Auth panel.

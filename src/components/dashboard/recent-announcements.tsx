@@ -1,18 +1,9 @@
 import { formatDistanceToNow } from "date-fns";
 import { ExternalLink, Megaphone } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DashboardAnnouncement } from "@/lib/dashboard";
 
-export function RecentAnnouncements({
-  items,
-}: {
-  items: DashboardAnnouncement[];
-}) {
+export function RecentAnnouncements({ items }: { items: DashboardAnnouncement[] }) {
   return (
     <Card>
       <CardHeader>
@@ -23,9 +14,7 @@ export function RecentAnnouncements({
       </CardHeader>
       <CardContent>
         {items.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No announcements yet.
-          </p>
+          <p className="py-6 text-center text-sm text-muted-foreground">No announcements yet.</p>
         ) : (
           <ul className="divide-y divide-border">
             {items.map((item) => {

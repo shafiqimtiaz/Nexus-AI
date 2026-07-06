@@ -22,18 +22,14 @@ function extractText(content: Array<{ type: string; text?: string }>): string {
 
 export async function getClassroomTools(): Promise<Record<string, Tool>> {
   const server = createClassroomMcpServer();
-  const [clientTransport, serverTransport] =
-    InMemoryTransport.createLinkedPair();
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 
   const client = new Client({
     name: "nexus-classroom-client",
     version: "1.0.0",
   });
 
-  await Promise.all([
-    server.connect(serverTransport),
-    client.connect(clientTransport),
-  ]);
+  await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
   const { tools: mcpTools } = await client.listTools();
 
@@ -49,9 +45,7 @@ export async function getClassroomTools(): Promise<Record<string, Tool>> {
           arguments: (args ?? {}) as Record<string, unknown>,
         });
 
-        const text = extractText(
-          result.content as Array<{ type: string; text?: string }>
-        );
+        const text = extractText(result.content as Array<{ type: string; text?: string }>);
 
         // MCP surfaces tool-side failures (e.g. "Classroom not connected") as
         // isError results rather than transport errors — turn them back into a

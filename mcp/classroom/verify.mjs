@@ -9,22 +9,14 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createClassroomMcpServer } from "./server.ts";
 
-const EXPECTED = [
-  "list_announcements",
-  "list_assignments",
-  "list_materials",
-  "get_class_info",
-];
+const EXPECTED = ["list_announcements", "list_assignments", "list_materials", "get_class_info"];
 
 const server = createClassroomMcpServer();
 const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 
 const client = new Client({ name: "nexus-verify", version: "1.0.0" });
 
-await Promise.all([
-  server.connect(serverTransport),
-  client.connect(clientTransport),
-]);
+await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
 const { tools } = await client.listTools();
 
@@ -34,9 +26,7 @@ for (const t of tools) {
 }
 
 const names = tools.map((t) => t.name).sort();
-const ok =
-  names.length === EXPECTED.length &&
-  EXPECTED.every((n) => names.includes(n));
+const ok = names.length === EXPECTED.length && EXPECTED.every((n) => names.includes(n));
 
 console.log(`\nExpected 4 tools present: ${ok ? "YES" : "NO"}`);
 

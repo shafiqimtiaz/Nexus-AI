@@ -1,11 +1,6 @@
 import { format, formatDistanceToNow } from "date-fns";
 import { CalendarDays } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import type { DashboardEvent } from "@/lib/dashboard";
 
@@ -35,9 +30,7 @@ export function UpcomingEvents({ events }: { events: DashboardEvent[] }) {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <EventBadge type={event.event_type} />
-                      <span className="truncate font-medium">
-                        {event.title}
-                      </span>
+                      <span className="truncate font-medium">{event.title}</span>
                     </div>
                     <div className="mt-1 text-xs text-muted-foreground">
                       {format(start, "EEE, MMM d · p")}

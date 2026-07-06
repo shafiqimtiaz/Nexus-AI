@@ -62,10 +62,7 @@ async function readUiStream(
         handlers.onTextDelta(String(event.delta ?? ""));
         break;
       case "tool-input-start":
-        handlers.onToolStart(
-          String(event.toolCallId),
-          String(event.toolName)
-        );
+        handlers.onToolStart(String(event.toolCallId), String(event.toolName));
         break;
       case "tool-input-available":
         handlers.onToolInput(String(event.toolCallId), event.input);
@@ -124,11 +121,7 @@ export function ChatInterface({ role }: { role: Role }) {
     });
   };
 
-  const upsertTool = (
-    m: ChatMessage,
-    id: string,
-    patch: Partial<ToolCall>
-  ) => {
+  const upsertTool = (m: ChatMessage, id: string, patch: Partial<ToolCall>) => {
     const idx = m.toolCalls.findIndex((t) => t.toolCallId === id);
     if (idx === -1) {
       m.toolCalls.push({
@@ -153,10 +146,7 @@ export function ChatInterface({ role }: { role: Role }) {
       toolCalls: [],
     };
     const history = [...messages, userMsg];
-    setMessages([
-      ...history,
-      { id: nextId(), role: "assistant", content: "", toolCalls: [] },
-    ]);
+    setMessages([...history, { id: nextId(), role: "assistant", content: "", toolCalls: [] }]);
     setInput("");
     setBusy(true);
 
@@ -185,18 +175,13 @@ export function ChatInterface({ role }: { role: Role }) {
           updateAssistant((m) => {
             m.content += delta;
           }),
-        onToolStart: (id, name) =>
-          updateAssistant((m) => upsertTool(m, id, { toolName: name })),
+        onToolStart: (id, name) => updateAssistant((m) => upsertTool(m, id, { toolName: name })),
         onToolInput: (id, inputArgs) =>
           updateAssistant((m) => upsertTool(m, id, { input: inputArgs })),
         onToolOutput: (id, output) =>
-          updateAssistant((m) =>
-            upsertTool(m, id, { output, state: "done" })
-          ),
+          updateAssistant((m) => upsertTool(m, id, { output, state: "done" })),
         onToolError: (id, errorText) =>
-          updateAssistant((m) =>
-            upsertTool(m, id, { errorText, state: "error" })
-          ),
+          updateAssistant((m) => upsertTool(m, id, { errorText, state: "error" })),
         onError: (errorText) =>
           updateAssistant((m) => {
             m.content += `\n\n_Error: ${errorText}_`;
@@ -215,8 +200,7 @@ export function ChatInterface({ role }: { role: Role }) {
     <div className="flex h-full flex-col">
       {isDemo && (
         <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-          Demo mode — log in to chat with the agent. (See the demo video for the
-          agent in action.)
+          Demo mode — log in to chat with the agent. (See the demo video for the agent in action.)
         </div>
       )}
 
@@ -228,8 +212,8 @@ export function ChatInterface({ role }: { role: Role }) {
           <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
             <Sparkles className="h-8 w-8" />
             <p className="text-sm">
-              Ask Nexus about your upcoming exams, plan a study schedule, or
-              summarize recent announcements.
+              Ask Nexus about your upcoming exams, plan a study schedule, or summarize recent
+              announcements.
             </p>
           </div>
         )}
@@ -237,23 +221,16 @@ export function ChatInterface({ role }: { role: Role }) {
         {messages.map((m) => (
           <div
             key={m.id}
-            className={cn(
-              "flex",
-              m.role === "user" ? "justify-end" : "justify-start"
-            )}
+            className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
           >
             <div
               className={cn(
                 "max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                m.role === "user"
-                  ? "bg-green-600 text-white"
-                  : "bg-muted text-foreground"
+                m.role === "user" ? "bg-green-600 text-white" : "bg-muted text-foreground"
               )}
             >
               {m.role === "assistant" &&
-                m.toolCalls.map((call) => (
-                  <ToolCallDisplay key={call.toolCallId} call={call} />
-                ))}
+                m.toolCalls.map((call) => <ToolCallDisplay key={call.toolCallId} call={call} />)}
               {m.content ? (
                 <p className="whitespace-pre-wrap break-words">{m.content}</p>
               ) : m.role === "assistant" && busy ? (
@@ -274,17 +251,11 @@ export function ChatInterface({ role }: { role: Role }) {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            isDemo ? "Log in to chat with Nexus" : "Message Nexus…"
-          }
+          placeholder={isDemo ? "Log in to chat with Nexus" : "Message Nexus…"}
           disabled={isDemo || busy}
         />
         <Button type="submit" disabled={isDemo || busy || !input.trim()}>
-          {busy ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </form>
     </div>

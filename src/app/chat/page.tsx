@@ -13,8 +13,8 @@ export default async function ChatPage() {
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">AI Chat</h1>
         <p className="text-sm text-muted-foreground">
-          Nexus can check your schedule, plan study sessions, and manage your
-          coursework using its tools.
+          Nexus can check your schedule, plan study sessions, and manage your coursework using its
+          tools.
         </p>
       </div>
 

@@ -49,12 +49,10 @@ async function upsertAnnouncements(
   }>
 ): Promise<number> {
   if (rows.length === 0) return 0;
-  const { error } = await db
-    .from("announcements")
-    .upsert(rows, {
-      onConflict: "platform_id,external_id",
-      ignoreDuplicates: true,
-    });
+  const { error } = await db.from("announcements").upsert(rows, {
+    onConflict: "platform_id,external_id",
+    ignoreDuplicates: true,
+  });
   if (error) throw new Error(error.message);
   return rows.length;
 }
@@ -111,10 +109,7 @@ async function syncDiscord(
     throw new Error("Discord platform is missing its bot token or channel ID.");
   }
 
-  const messages = await fetchChannelMessages(
-    platform.access_token,
-    platform.external_id
-  );
+  const messages = await fetchChannelMessages(platform.access_token, platform.external_id);
 
   const annCount = await upsertAnnouncements(
     db,
@@ -140,10 +135,7 @@ async function syncSlack(
     throw new Error("Slack platform is missing its bot token or channel ID.");
   }
 
-  const messages = await fetchSlackMessages(
-    platform.access_token,
-    platform.external_id
-  );
+  const messages = await fetchSlackMessages(platform.access_token, platform.external_id);
 
   const annCount = await upsertAnnouncements(
     db,

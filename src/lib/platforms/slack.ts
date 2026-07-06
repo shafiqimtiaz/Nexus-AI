@@ -21,10 +21,7 @@ interface RawSlackMessage {
   username?: string;
 }
 
-function normalizeMessage(
-  raw: RawSlackMessage,
-  channelId: string
-): SlackMessage {
+function normalizeMessage(raw: RawSlackMessage, channelId: string): SlackMessage {
   const tsId = raw.ts.replace(".", "");
   return {
     id: raw.ts,

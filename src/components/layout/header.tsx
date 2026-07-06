@@ -31,19 +31,14 @@ export function Header({ role }: { role: Role }) {
           </span>
           <span className="text-muted-foreground">
             Read-only.{" "}
-            <Link
-              href="/login"
-              className="font-medium text-primary hover:underline"
-            >
+            <Link href="/login" className="font-medium text-primary hover:underline">
               Log in
             </Link>{" "}
             for full access.
           </span>
         </div>
       ) : (
-        <span className="text-sm font-medium text-muted-foreground">
-          Signed in
-        </span>
+        <span className="text-sm font-medium text-muted-foreground">Signed in</span>
       )}
 
       <div className="flex items-center gap-3">

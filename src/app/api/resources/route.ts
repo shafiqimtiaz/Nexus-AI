@@ -33,17 +33,12 @@ function flatten(rows: RawRow[]): ResourceWithLabels[] {
     const { labels, ...rest } = row;
     return {
       ...rest,
-      labels: (labels ?? [])
-        .map((rl) => rl.label)
-        .filter((l): l is RawLabel => l !== null),
+      labels: (labels ?? []).map((rl) => rl.label).filter((l): l is RawLabel => l !== null),
     };
   });
 }
 
-async function fetchOne(
-  db: SupabaseClient,
-  id: string
-): Promise<ResourceWithLabels | null> {
+async function fetchOne(db: SupabaseClient, id: string): Promise<ResourceWithLabels | null> {
   const { data } = await db.from("resources").select(SELECT).eq("id", id).single();
   return data ? flatten([data as unknown as RawRow])[0] : null;
 }
@@ -107,10 +102,7 @@ export async function POST(request: NextRequest) {
     typeof body.url !== "string" ||
     !body.url.trim()
   ) {
-    return Response.json(
-      { error: "title and url are required." },
-      { status: 400 }
-    );
+    return Response.json({ error: "title and url are required." }, { status: 400 });
   }
 
   const db = createServerClient();
@@ -139,14 +131,12 @@ export async function POST(request: NextRequest) {
     ? body.labelIds.filter((x: unknown): x is string => typeof x === "string")
     : [];
   if (labelIds.length > 0) {
-    const { error: linkErr } = await db
-      .from("resource_labels")
-      .insert(
-        labelIds.map((label_id: string) => ({
-          resource_id: created.id,
-          label_id,
-        }))
-      );
+    const { error: linkErr } = await db.from("resource_labels").insert(
+      labelIds.map((label_id: string) => ({
+        resource_id: created.id,
+        label_id,
+      }))
+    );
     if (linkErr) {
       return Response.json({ error: linkErr.message }, { status: 500 });
     }
@@ -164,10 +154,7 @@ export async function PATCH(request: NextRequest) {
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body.id !== "string") {
-    return Response.json(
-      { error: "A resource id is required." },
-      { status: 400 }
-    );
+    return Response.json({ error: "A resource id is required." }, { status: 400 });
   }
 
   const db = createServerClient();
@@ -190,35 +177,25 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (Object.keys(updates).length > 0) {
-    const { error } = await db
-      .from("resources")
-      .update(updates)
-      .eq("id", body.id);
+    const { error } = await db.from("resources").update(updates).eq("id", body.id);
     if (error) {
       return Response.json({ error: error.message }, { status: 500 });
     }
   }
 
   if (Array.isArray(body.labelIds)) {
-    const labelIds = body.labelIds.filter(
-      (x: unknown): x is string => typeof x === "string"
-    );
-    const { error: delErr } = await db
-      .from("resource_labels")
-      .delete()
-      .eq("resource_id", body.id);
+    const labelIds = body.labelIds.filter((x: unknown): x is string => typeof x === "string");
+    const { error: delErr } = await db.from("resource_labels").delete().eq("resource_id", body.id);
     if (delErr) {
       return Response.json({ error: delErr.message }, { status: 500 });
     }
     if (labelIds.length > 0) {
-      const { error: insErr } = await db
-        .from("resource_labels")
-        .insert(
-          labelIds.map((label_id: string) => ({
-            resource_id: body.id,
-            label_id,
-          }))
-        );
+      const { error: insErr } = await db.from("resource_labels").insert(
+        labelIds.map((label_id: string) => ({
+          resource_id: body.id,
+          label_id,
+        }))
+      );
       if (insErr) {
         return Response.json({ error: insErr.message }, { status: 500 });
       }
@@ -237,10 +214,7 @@ export async function DELETE(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const id = body?.id ?? request.nextUrl.searchParams.get("id");
   if (typeof id !== "string" || !id) {
-    return Response.json(
-      { error: "A resource id is required." },
-      { status: 400 }
-    );
+    return Response.json({ error: "A resource id is required." }, { status: 400 });
   }
 
   const db = createServerClient();

@@ -2,15 +2,7 @@ import { Bell, CalendarClock, ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { DashboardData } from "@/lib/dashboard";
 
-function Stat({
-  icon: Icon,
-  value,
-  label,
-}: {
-  icon: typeof Bell;
-  value: string;
-  label: string;
-}) {
+function Stat({ icon: Icon, value, label }: { icon: typeof Bell; value: string; label: string }) {
   return (
     <Card>
       <CardContent className="flex items-center gap-4">
@@ -21,9 +13,7 @@ function Stat({
           <div className="text-2xl font-semibold leading-none tracking-tight tabular-nums">
             {value}
           </div>
-          <div className="mt-1 truncate text-xs text-muted-foreground">
-            {label}
-          </div>
+          <div className="mt-1 truncate text-xs text-muted-foreground">{label}</div>
         </div>
       </CardContent>
     </Card>
@@ -50,11 +40,7 @@ export function QuickStats({ stats }: { stats: DashboardData["stats"] }) {
               : "Days to next exam"
         }
       />
-      <Stat
-        icon={Bell}
-        value={String(stats.unreadAnnouncements)}
-        label="Unread announcements"
-      />
+      <Stat icon={Bell} value={String(stats.unreadAnnouncements)} label="Unread announcements" />
       <Stat
         icon={ClipboardList}
         value={String(stats.upcomingAssignments)}

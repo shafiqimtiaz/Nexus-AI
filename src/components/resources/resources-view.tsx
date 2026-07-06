@@ -23,10 +23,7 @@ export type Resource = {
   labels: Label[];
 };
 
-async function fetchResources(
-  q: string,
-  label: string | null
-): Promise<Resource[]> {
+async function fetchResources(q: string, label: string | null): Promise<Resource[]> {
   const params = new URLSearchParams();
   if (q.trim()) params.set("q", q.trim());
   if (label) params.set("label", label);
@@ -44,10 +41,7 @@ async function fetchLabels(): Promise<Label[]> {
   return json.labels ?? [];
 }
 
-type DialogState =
-  | { mode: "create" }
-  | { mode: "edit"; resource: Resource }
-  | null;
+type DialogState = { mode: "create" } | { mode: "edit"; resource: Resource } | null;
 
 export function ResourcesView({ role }: { role: Role }) {
   const isOwner = role === "owner";
@@ -150,9 +144,7 @@ export function ResourcesView({ role }: { role: Role }) {
       </div>
 
       {isLoading ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">
-          Loading…
-        </p>
+        <p className="py-16 text-center text-sm text-muted-foreground">Loading…</p>
       ) : resources.length === 0 ? (
         <div className="rounded-lg border border-dashed py-16 text-center">
           <p className="text-sm text-muted-foreground">

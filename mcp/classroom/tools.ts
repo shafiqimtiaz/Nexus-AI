@@ -80,9 +80,7 @@ export interface AnnouncementSummary {
   url: string;
 }
 
-export async function listAnnouncements(
-  limit = 10
-): Promise<AnnouncementSummary[]> {
+export async function listAnnouncements(limit = 10): Promise<AnnouncementSummary[]> {
   const { token, courseId } = await classroomContext();
   const data = await classroomGet<{
     announcements?: Array<{
@@ -109,9 +107,7 @@ export interface AssignmentSummary {
   url: string;
 }
 
-export async function listAssignments(
-  limit = 10
-): Promise<AssignmentSummary[]> {
+export async function listAssignments(limit = 10): Promise<AssignmentSummary[]> {
   const { token, courseId } = await classroomContext();
   const data = await classroomGet<{
     courseWork?: Array<{

@@ -4,8 +4,7 @@ import { requireOwner } from "@/lib/auth";
 
 // Columns safe to expose to the browser. Token columns are deliberately omitted
 // so access_token / refresh_token never leave the server.
-const SAFE_COLUMNS =
-  "id, type, name, external_id, is_connected, last_synced_at";
+const SAFE_COLUMNS = "id, type, name, external_id, is_connected, last_synced_at";
 
 const PLATFORM_TYPES = ["google_classroom", "discord", "slack", "gemini", "google_oauth"] as const;
 type PlatformType = (typeof PLATFORM_TYPES)[number];
@@ -13,10 +12,7 @@ type PlatformType = (typeof PLATFORM_TYPES)[number];
 const DISCORD_API = "https://discord.com/api/v10";
 
 function isPlatformType(value: unknown): value is PlatformType {
-  return (
-    typeof value === "string" &&
-    (PLATFORM_TYPES as readonly string[]).includes(value)
-  );
+  return typeof value === "string" && (PLATFORM_TYPES as readonly string[]).includes(value);
 }
 
 export async function GET() {
@@ -32,7 +28,9 @@ export async function GET() {
 
   return Response.json({
     platforms: data ?? [],
-    hasGlobalGoogleOauth: !!(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET)
+    hasGlobalGoogleOauth: !!(
+      process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET
+    ),
   });
 }
 
@@ -42,10 +40,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => null);
   if (!body || !isPlatformType(body.type)) {
-    return Response.json(
-      { error: "A valid platform type is required." },
-      { status: 400 }
-    );
+    return Response.json({ error: "A valid platform type is required." }, { status: 400 });
   }
 
   const type: PlatformType = body.type;
@@ -63,10 +58,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const discordRes = await fetch(
-      `${DISCORD_API}/channels/${externalId}`,
-      { headers: { Authorization: `Bot ${accessToken}` } }
-    ).catch(() => null);
+    const discordRes = await fetch(`${DISCORD_API}/channels/${externalId}`, {
+      headers: { Authorization: `Bot ${accessToken}` },
+    }).catch(() => null);
 
     if (!discordRes || !discordRes.ok) {
       return Response.json(
@@ -92,10 +86,9 @@ export async function POST(request: NextRequest) {
     }
 
     const params = new URLSearchParams({ channel: externalId });
-    const slackRes = await fetch(
-      `https://slack.com/api/conversations.info?${params.toString()}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    ).catch(() => null);
+    const slackRes = await fetch(`https://slack.com/api/conversations.info?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }).catch(() => null);
 
     if (!slackRes || !slackRes.ok) {
       return Response.json(
@@ -122,10 +115,7 @@ export async function POST(request: NextRequest) {
   // Gemini connect flow: validate API key via model API call
   if (type === "gemini") {
     if (!accessToken) {
-      return Response.json(
-        { error: "A Gemini API Key is required." },
-        { status: 400 }
-      );
+      return Response.json({ error: "A Gemini API Key is required." }, { status: 400 });
     }
 
     const valRes = await fetch(
@@ -181,10 +171,7 @@ export async function DELETE(request: NextRequest) {
   const type = body?.type ?? request.nextUrl.searchParams.get("type");
 
   if (!isPlatformType(type)) {
-    return Response.json(
-      { error: "A valid platform type is required." },
-      { status: 400 }
-    );
+    return Response.json({ error: "A valid platform type is required." }, { status: 400 });
   }
 
   const db = createServerClient();

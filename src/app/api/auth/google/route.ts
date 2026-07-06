@@ -20,9 +20,6 @@ export async function GET(request: NextRequest) {
     const authUrl = await getAuthUrl(state, request.url);
     return NextResponse.redirect(authUrl);
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Unknown error occurred" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || "Unknown error occurred" }, { status: 500 });
   }
 }

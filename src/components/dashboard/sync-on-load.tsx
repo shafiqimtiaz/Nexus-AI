@@ -38,12 +38,7 @@ export function SyncOnLoad({ role }: { role: Role }) {
   if (role !== "owner") return null;
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      disabled={syncing}
-      onClick={() => void runSync(true)}
-    >
+    <Button variant="outline" size="sm" disabled={syncing} onClick={() => void runSync(true)}>
       <RefreshCw className={syncing ? "animate-spin" : undefined} />
       {syncing ? "Syncing…" : "Sync now"}
     </Button>

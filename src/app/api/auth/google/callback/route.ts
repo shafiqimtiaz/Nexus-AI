@@ -3,16 +3,14 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { exchangeCode, OAUTH_STATE_COOKIE } from "@/lib/auth/google-oauth";
 
-const CLASSROOM_COURSES_URL =
-  "https://classroom.googleapis.com/v1/courses?courseStates=ACTIVE";
+const CLASSROOM_COURSES_URL = "https://classroom.googleapis.com/v1/courses?courseStates=ACTIVE";
 
 // GET /api/auth/google/callback — Google redirects here with ?code & ?state.
 // Verifies CSRF state, exchanges the code, picks a Classroom course, and
 // persists the tokens. Tokens are never placed in the redirect URL.
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
-  const optionsUrl = (query: string) =>
-    new URL(`/options?${query}`, request.url);
+  const optionsUrl = (query: string) => new URL(`/options?${query}`, request.url);
 
   const c = await cookies();
   const storedState = c.get(OAUTH_STATE_COOKIE)?.value;
@@ -51,9 +49,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(optionsUrl("error=nocourse"));
     }
 
-    const tokenExpiresAt = new Date(
-      Date.now() + tokens.expires_in * 1000
-    ).toISOString();
+    const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
     const db = createServerClient();
     const { error } = await db.from("platforms").upsert(
@@ -66,9 +62,7 @@ export async function GET(request: NextRequest) {
         is_connected: true,
         // Google omits refresh_token on re-consent sometimes; keep the stored
         // one instead of overwriting it with null.
-        ...(tokens.refresh_token
-          ? { refresh_token: tokens.refresh_token }
-          : {}),
+        ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
       },
       { onConflict: "user_id,type" }
     );

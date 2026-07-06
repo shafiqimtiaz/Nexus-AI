@@ -17,10 +17,7 @@ export async function getRole(): Promise<Role> {
 export async function requireOwner(): Promise<Response | null> {
   const role = await getRole();
   if (role === "demo") {
-    return Response.json(
-      { error: "Demo mode is read-only" },
-      { status: 403 }
-    );
+    return Response.json({ error: "Demo mode is read-only" }, { status: 403 });
   }
   return null;
 }

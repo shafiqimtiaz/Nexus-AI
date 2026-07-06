@@ -40,9 +40,10 @@ export async function POST(request: NextRequest) {
     .eq("type", "gemini")
     .maybeSingle();
 
-  const apiKey = (geminiPlatform?.is_connected && geminiPlatform?.access_token)
-    ? geminiPlatform.access_token
-    : (process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
+  const apiKey =
+    geminiPlatform?.is_connected && geminiPlatform?.access_token
+      ? geminiPlatform.access_token
+      : process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
 
   const googleProvider = createGoogle({
     apiKey,

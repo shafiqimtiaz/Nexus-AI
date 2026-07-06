@@ -41,9 +41,7 @@ export function ToolCallDisplay({ call }: { call: ToolCall }) {
           {call.state === "running" && (
             <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
           )}
-          {call.state === "done" && (
-            <Check className="h-3.5 w-3.5 text-green-600" />
-          )}
+          {call.state === "done" && <Check className="h-3.5 w-3.5 text-green-600" />}
           {call.state === "error" && <X className="h-3.5 w-3.5 text-red-600" />}
           <ChevronDown
             className={cn(

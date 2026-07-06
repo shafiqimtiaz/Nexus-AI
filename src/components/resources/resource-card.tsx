@@ -3,12 +3,7 @@
 import { ExternalLink, Loader2, Pencil, Pin, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Label, Resource } from "@/components/resources/resources-view";
 import { cn } from "@/lib/utils";
@@ -109,18 +104,14 @@ export function ResourceCard({
             aria-pressed={resource.is_pinned}
             onClick={() => togglePin.mutate()}
           >
-            <Pin
-              className={cn("h-4 w-4", resource.is_pinned && "fill-current")}
-            />
+            <Pin className={cn("h-4 w-4", resource.is_pinned && "fill-current")} />
           </Button>
         )}
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-3">
         {resource.description && (
-          <p className="line-clamp-3 text-sm text-muted-foreground">
-            {resource.description}
-          </p>
+          <p className="line-clamp-3 text-sm text-muted-foreground">{resource.description}</p>
         )}
 
         {resource.labels.length > 0 && (
