@@ -1,6 +1,10 @@
 -- Remove the single-row UNIQUE constraint on type for platforms
 ALTER TABLE platforms DROP CONSTRAINT IF EXISTS platforms_type_key;
 
+-- Drop and recreate the platforms type check constraint to support all integrated platforms
+ALTER TABLE platforms DROP CONSTRAINT IF EXISTS platforms_type_check;
+ALTER TABLE platforms ADD CONSTRAINT platforms_type_check CHECK (type IN ('google_classroom', 'discord', 'slack', 'gemini', 'google_oauth'));
+
 -- Add user_id column with default value pointing to the authenticated user ID (auth.uid())
 ALTER TABLE platforms ADD COLUMN IF NOT EXISTS user_id UUID NOT NULL DEFAULT auth.uid();
 ALTER TABLE events ADD COLUMN IF NOT EXISTS user_id UUID NOT NULL DEFAULT auth.uid();
