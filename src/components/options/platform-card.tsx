@@ -29,11 +29,19 @@ type SafePlatform = {
   last_synced_at: string | null;
 };
 
-async function fetchPlatforms(): Promise<SafePlatform[]> {
+type PlatformsResponse = {
+  platforms: SafePlatform[];
+  hasGlobalGoogleOauth: boolean;
+};
+
+async function fetchPlatforms(): Promise<PlatformsResponse> {
   const res = await fetch("/api/platforms");
   if (!res.ok) throw new Error("Failed to load platforms");
   const json = await res.json();
-  return json.platforms ?? [];
+  return {
+    platforms: json.platforms ?? [],
+    hasGlobalGoogleOauth: !!json.hasGlobalGoogleOauth,
+  };
 }
 
 function formatSynced(iso: string | null): string {
@@ -78,11 +86,13 @@ export function PlatformCard({
   const [botToken, setBotToken] = useState("");
   const [channelId, setChannelId] = useState("");
 
-  const { data: platforms, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["platforms"],
     queryFn: fetchPlatforms,
   });
 
+  const platforms = data?.platforms;
+  const hasGlobalGoogleOauth = data?.hasGlobalGoogleOauth ?? false;
   const platform = platforms?.find((p) => p.type === type);
   const connected = platform?.is_connected ?? false;
 
@@ -236,55 +246,63 @@ export function PlatformCard({
           <div className="space-y-4">
             {!connected && (
               <div className="space-y-3">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="client-id"
-                      className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
-                    >
-                      <KeyRound className="h-3.5 w-3.5" />
-                      Google Client ID
-                    </label>
-                    <Input
-                      id="client-id"
-                      placeholder="Enter Google Client ID (optional if env set)"
-                      value={channelId}
-                      disabled={isDemo || connectGoogleOauth.isPending}
-                      onChange={(e) => setChannelId(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="client-secret"
-                      className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
-                    >
-                      <KeyRound className="h-3.5 w-3.5" />
-                      Google Client Secret
-                    </label>
-                    <Input
-                      id="client-secret"
-                      type="password"
-                      placeholder="Enter Google Client Secret (optional if env set)"
-                      value={botToken}
-                      disabled={isDemo || connectGoogleOauth.isPending}
-                      onChange={(e) => setBotToken(e.target.value)}
-                    />
-                  </div>
-                </div>
+                {!hasGlobalGoogleOauth ? (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="client-id"
+                          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+                        >
+                          <KeyRound className="h-3.5 w-3.5" />
+                          Google Client ID
+                        </label>
+                        <Input
+                          id="client-id"
+                          placeholder="Enter Google Client ID (optional if env set)"
+                          value={channelId}
+                          disabled={isDemo || connectGoogleOauth.isPending}
+                          onChange={(e) => setChannelId(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="client-secret"
+                          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+                        >
+                          <KeyRound className="h-3.5 w-3.5" />
+                          Google Client Secret
+                        </label>
+                        <Input
+                          id="client-secret"
+                          type="password"
+                          placeholder="Enter Google Client Secret (optional if env set)"
+                          value={botToken}
+                          disabled={isDemo || connectGoogleOauth.isPending}
+                          onChange={(e) => setBotToken(e.target.value)}
+                        />
+                      </div>
+                    </div>
 
-                <div className="rounded-md border bg-muted/30 p-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">
-                    Authorized Redirect URI:
+                    <div className="rounded-md border bg-muted/30 p-3">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
+                        Authorized Redirect URI:
+                      </p>
+                      <code className="text-[11px] block select-all break-all bg-background border px-2 py-1 rounded">
+                        {typeof window !== "undefined"
+                          ? `${window.location.origin}/api/auth/google/callback`
+                          : "http://localhost:3000/api/auth/google/callback"}
+                      </code>
+                      <p className="text-[10px] text-muted-foreground mt-1.5">
+                        Add this in Google Cloud Console &gt; Credentials &gt; OAuth 2.0 Client IDs.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Google OAuth is configured globally by the platform. You can connect your Classroom account directly below.
                   </p>
-                  <code className="text-[11px] block select-all break-all bg-background border px-2 py-1 rounded">
-                    {typeof window !== "undefined"
-                      ? `${window.location.origin}/api/auth/google/callback`
-                      : "http://localhost:3000/api/auth/google/callback"}
-                  </code>
-                  <p className="text-[10px] text-muted-foreground mt-1.5">
-                    Add this in Google Cloud Console &gt; Credentials &gt; OAuth 2.0 Client IDs.
-                  </p>
-                </div>
+                )}
               </div>
             )}
 

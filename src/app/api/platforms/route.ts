@@ -30,7 +30,10 @@ export async function GET() {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json({ platforms: data ?? [] });
+  return Response.json({
+    platforms: data ?? [],
+    hasGlobalGoogleOauth: !!(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET)
+  });
 }
 
 export async function POST(request: NextRequest) {
