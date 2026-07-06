@@ -84,7 +84,7 @@ To run Nexus, populate the following environment variables in `.env` (local deve
 ```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 
 # Google Cloud OAuth (For Google Classroom Access)
 GOOGLE_OAUTH_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
