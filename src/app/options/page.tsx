@@ -1,4 +1,3 @@
-import { GraduationCap, MessageSquare } from "lucide-react";
 import { getRole } from "@/lib/auth";
 import { PlatformCard } from "@/components/options/platform-card";
 
@@ -23,14 +22,12 @@ export default async function OptionsPage() {
           type="google_classroom"
           displayName="Google Classroom"
           description="Sync your courses, assignments, and due dates."
-          icon={GraduationCap}
           role={role}
         />
         <PlatformCard
           type="discord"
           displayName="Discord"
           description="Post reminders and updates to a channel via a bot."
-          icon={MessageSquare}
           role={role}
         />
       </div>

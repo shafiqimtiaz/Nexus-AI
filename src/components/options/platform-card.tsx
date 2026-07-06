@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { LucideIcon } from "lucide-react";
-import { Hash, KeyRound, Loader2 } from "lucide-react";
+import { Hash, KeyRound, Loader2, GraduationCap, MessageSquare } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -45,15 +44,14 @@ export function PlatformCard({
   type,
   displayName,
   description,
-  icon: Icon,
   role,
 }: {
   type: PlatformType;
   displayName: string;
   description: string;
-  icon: LucideIcon;
   role: Role;
 }) {
+  const Icon = type === "google_classroom" ? GraduationCap : MessageSquare;
   const queryClient = useQueryClient();
   const isDemo = role === "demo";
 
