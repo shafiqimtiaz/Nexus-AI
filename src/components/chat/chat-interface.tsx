@@ -320,7 +320,7 @@ export function ChatInterface({ role }: { role: Role }) {
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
             disabled={busy}
-            className="h-10 w-44 shrink-0 cursor-pointer rounded-md border border-border bg-card px-2 text-xs font-medium text-foreground transition-colors hover:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-75"
+            className="box-border h-10 w-44 shrink-0 cursor-pointer rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:border-border-dark focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-75"
           >
             <option value="gemini-flash-lite-latest" className="bg-card text-foreground">
               Gemini Lite (Default)
