@@ -13,7 +13,7 @@
       "created_at": "2026-07-06T02:39:46.084Z",
       "type": "gemini",
       "name": "Google Gemini",
-      "access_token": "AIzaSyDMEYvmfu9sXhbpvZFN4gMkPAJOer8yIXs",
+      "access_token": "AIzaSy_MOCK_KEY_FOR_TESTING",
       "is_connected": true
     }
   ],
