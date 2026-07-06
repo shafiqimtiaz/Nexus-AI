@@ -18,10 +18,15 @@ export function SyncOnLoad({ role }: { role: Role }) {
   async function runSync(force: boolean) {
     setSyncing(true);
     try {
-      await fetch(force ? "/api/sync?force=1" : "/api/sync", {
+      const res = await fetch(force ? "/api/sync?force=1" : "/api/sync", {
         method: "POST",
       });
-      router.refresh();
+      // Skip the full server re-render when every platform was staleness-skipped
+      // (nothing changed). On parse failure, refresh anyway to stay safe.
+      const data = await res.json().catch(() => null);
+      const didWork =
+        !Array.isArray(data?.synced) || data.synced.some((r: { skipped?: boolean }) => !r.skipped);
+      if (didWork) router.refresh();
     } catch {
       // Fire-and-forget: a failed background sync must not disrupt the page.
     } finally {

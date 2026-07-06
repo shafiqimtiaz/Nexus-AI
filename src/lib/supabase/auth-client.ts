@@ -40,6 +40,17 @@ export async function createAuthClient() {
           error: null,
         };
       },
+      async getSession() {
+        const loggedIn = cookieStore.get("nexus_logged_in")?.value === "true";
+        return {
+          data: {
+            session: loggedIn
+              ? { user: { email: "owner@nexus.edu", id: "owner-user-id" } }
+              : null,
+          },
+          error: null,
+        };
+      },
       async signInWithPassword({ email, password }: any) {
         cookieStore.set("nexus_logged_in", "true", { path: "/" });
         return {
