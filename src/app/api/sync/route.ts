@@ -61,6 +61,9 @@ async function syncClassroom(
   db: ReturnType<typeof createServerClient>,
   platform: PlatformRow
 ): Promise<{ announcements: number; events: number }> {
+  if (platform.external_id === "google_user") {
+    return { announcements: 0, events: 0 };
+  }
   const announcements = await listAnnouncements();
   const annCount = await upsertAnnouncements(
     db,

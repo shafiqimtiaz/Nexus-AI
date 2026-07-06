@@ -42,18 +42,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const coursesData = (await coursesRes.json()) as {
+    const coursesData = (await coursesRes.json().catch(() => ({}))) as {
       courses?: Array<{ id: string; name?: string }>;
     };
 
     // TODO: let user choose course — MVP grabs the first active course.
     const course = coursesData.courses?.[0];
-    if (!course) {
-      return Response.json(
-        { error: "No active Google Classroom courses found on your Google Account" },
-        { status: 400 }
-      );
-    }
+    const courseName = course?.name ?? "Google Account";
+    const courseId = course ? String(course.id) : "google_user";
 
     const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
@@ -61,8 +57,8 @@ export async function GET(request: NextRequest) {
     const { error } = await db.from("platforms").upsert(
       {
         type: "google_classroom",
-        name: course.name ?? "Google Classroom",
-        external_id: String(course.id),
+        name: courseName,
+        external_id: courseId,
         access_token: tokens.access_token,
         token_expires_at: tokenExpiresAt,
         is_connected: true,
