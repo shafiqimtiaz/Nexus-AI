@@ -5,7 +5,7 @@
 **Project Context:** Kaggle 5-Day AI Agents Intensive — Vibe Coding Capstone (with Google)
 **Track:** Concierge Agents
 **Deadline:** July 6, 2026, 11:59 PM PT
-**Type:** Hosted web application (single-user personal tool, with a public read-only demo mode for judges)
+**Type:** Hosted web application (multi-user SaaS tool, with a public read-only demo mode for guests)
 
 ---
 
@@ -17,7 +17,7 @@ Nexus connects to a student's academic platforms (Google Classroom via OAuth, Di
 - **One place** for academic announcements across platforms
 - **Never miss** an exam, quiz, or deadline
 - **AI-powered** study assistance through a tool-calling agent
-- **Safe by design** — single authenticated owner, tokens never leave the server (Concierge track requirement)
+- **Safe by design** — SaaS multi-user tenant separation via RLS, client-platform tokens never leave the server
 
 ### Rubric Concepts Demonstrated (need ≥3)
 1. **MCP Server** — in-repo Google Classroom MCP server (code)
@@ -105,7 +105,7 @@ Google Classroom is accessed through an **in-repo MCP server**; Discord through 
 
 | Aspect | Detail |
 |--------|--------|
-| App login | Supabase Auth, single owner account. Owner logs in for full access. |
+| App login | Supabase Auth. Any user can sign up/login and manage their own connected platforms and calendar. |
 | Demo mode | Unauthenticated visitors get a **read-only demo** view with seeded sample data (dashboard/calendar/resources visible, chat and mutations disabled). Satisfies rubric's "publicly accessible, no login" project link without exposing owner data. |
 | Database | RLS enabled on all tables; anon role denied. All queries run server-side (service role) — the browser never talks to Supabase directly. |
 | Platform tokens | Google OAuth tokens + Discord bot token stored in Supabase, only ever read server-side. Never sent to the frontend. |
@@ -128,7 +128,7 @@ No cron infrastructure. Data is fresh whenever the user looks.
 
 ## 6. In Scope (MVP — ships by deadline)
 
-- ✅ Supabase Auth login (owner) + public read-only demo mode with seeded data
+- ✅ Supabase Auth login (multi-user SaaS) + public read-only demo mode with local seeded data
 - ✅ Google Classroom connect (OAuth) + in-repo Classroom MCP server
 - ✅ Discord connect (bot token) + in-process tool
 - ✅ Sync-on-load announcement ingestion with dedup + auto-detected assignment events
@@ -137,6 +137,7 @@ No cron infrastructure. Data is fresh whenever the user looks.
 - ✅ Simple calendar view + manual event creation
 - ✅ Resources page: links, labels, search, pin
 - ✅ Deployed on Vercel; Kaggle writeup + ≤5-min YouTube video + README with architecture diagram
+- ✅ Multi-user support
 
 ## 7. Out of Scope (documented as future work in writeup)
 
@@ -144,7 +145,6 @@ No cron infrastructure. Data is fresh whenever the user looks.
 - ❌ Google Calendar push (one-way sync)
 - ❌ Multi-model / user-provided LLM keys (Gemini only)
 - ❌ Push/email notifications (reminders are calendar events only)
-- ❌ Multi-user support
 - ❌ File uploads (links only)
 - ❌ react-big-calendar / drag-drop calendar UX
 - ❌ Offline support

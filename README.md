@@ -83,20 +83,15 @@ To run Nexus, populate the following environment variables in `.env` (local deve
 
 ```bash
 # Supabase Configuration
-SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
-SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-
-# Gemini API Key
-GOOGLE_GENERATIVE_AI_API_KEY=YOUR_GEMINI_API_KEY
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 # Google Cloud OAuth (For Google Classroom Access)
 GOOGLE_OAUTH_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
 GOOGLE_OAUTH_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 GOOGLE_OAUTH_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 
-# Next.js Public URL
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+
 ```
 
 ---
@@ -173,7 +168,7 @@ Nexus is designed to deploy seamlessly to Vercel:
 
 1.  Push your code to a public or private GitHub repository.
 2.  Import the repository on Vercel.
-3.  Configure all variables in the **Environment Variables** panel. Make sure `NEXT_PUBLIC_APP_URL` and `GOOGLE_OAUTH_REDIRECT_URI` use your production Vercel domain.
+3.  Configure all variables in the **Environment Variables** panel. Make sure `GOOGLE_OAUTH_REDIRECT_URI` uses your production Vercel domain.
 4.  Click **Deploy**.
 5.  After deployment, update your Google Cloud Console OAuth redirect URIs to include the production Vercel callback URL.
 

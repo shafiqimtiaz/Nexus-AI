@@ -1,10 +1,35 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 
-// Mock Auth Client using cookies to manage state without Supabase Auth.
+// Mock/Real Auth Client helper. 
+// Uses cookies to manage state, and connects to Supabase if configured.
 export async function createAuthClient() {
   const cookieStore = await cookies();
 
+  // If Supabase keys are configured, use the real Supabase auth client
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return createSupabaseServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {}
+          },
+        },
+      }
+    );
+  }
+
+  // Fallback to Mock Auth Client for offline/local-only runs
   return {
     auth: {
       async getUser() {
