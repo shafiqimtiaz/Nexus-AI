@@ -134,6 +134,21 @@ export default function LoginPage() {
                 </>
               )}
             </div>
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t" />
+              <span className="flex-shrink mx-4 text-xs text-muted-foreground uppercase">Or</span>
+              <div className="flex-grow border-t" />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 cursor-pointer"
+              onClick={() => {
+                router.push("/");
+              }}
+            >
+              Browse in Demo Mode (Read-only)
+            </Button>
           </form>
         </CardContent>
       </Card>
