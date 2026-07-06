@@ -14,8 +14,8 @@ const EVENT_TYPES = ["exam", "quiz", "assignment", "study_block", "other"] as co
 const EVENT_COLUMNS = "id, title, description, event_type, start_time, end_time, is_auto_detected";
 const RESOURCE_COLUMNS = "id, title, url, description, is_pinned";
 
-function fail(context: string, message: string): never {
-  throw new Error(`${context}: ${message}`);
+function fail(context: string, message: string) {
+  return { error: `${context}: ${message}` };
 }
 
 export function getLocalTools(): Record<string, Tool> {
@@ -44,7 +44,7 @@ export function getLocalTools(): Record<string, Tool> {
           .lte("start_time", until.toISOString())
           .order("start_time", { ascending: true });
 
-        if (error) fail("get_upcoming_events", error.message);
+        if (error) return fail("get_upcoming_events", error.message);
         return { count: data?.length ?? 0, events: data ?? [] };
       },
     }),
@@ -74,7 +74,7 @@ export function getLocalTools(): Record<string, Tool> {
           .select(EVENT_COLUMNS)
           .single();
 
-        if (error) fail("create_event", error.message);
+        if (error) return fail("create_event", error.message);
         return { created: data };
       },
     }),
@@ -94,7 +94,7 @@ export function getLocalTools(): Record<string, Tool> {
         const db = createServerClient();
         const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
         if (Object.keys(patch).length === 0) {
-          fail("edit_event", "no fields provided to update");
+          return fail("edit_event", "no fields provided to update");
         }
 
         const { data, error } = await db
@@ -104,7 +104,7 @@ export function getLocalTools(): Record<string, Tool> {
           .select(EVENT_COLUMNS)
           .single();
 
-        if (error) fail("edit_event", error.message);
+        if (error) return fail("edit_event", error.message);
         return { updated: data };
       },
     }),
@@ -125,7 +125,7 @@ export function getLocalTools(): Record<string, Tool> {
         }
         const { data, error } = await reqQuery.order("is_pinned", { ascending: false });
 
-        if (error) fail("search_resources", error.message);
+        if (error) return fail("search_resources", error.message);
         return { count: data?.length ?? 0, resources: data ?? [] };
       },
     }),
@@ -146,7 +146,7 @@ export function getLocalTools(): Record<string, Tool> {
           .select(RESOURCE_COLUMNS)
           .single();
 
-        if (error) fail("add_resource", error.message);
+        if (error) return fail("add_resource", error.message);
         return { created: data };
       },
     }),
@@ -170,9 +170,9 @@ export function getLocalTools(): Record<string, Tool> {
         const now = Date.now();
         const examMs = new Date(exam_date).getTime();
 
-        if (Number.isNaN(examMs)) fail("generate_study_plan", "invalid exam_date");
+        if (Number.isNaN(examMs)) return fail("generate_study_plan", "invalid exam_date");
         if (examMs <= now) {
-          fail("generate_study_plan", "exam_date must be in the future");
+          return fail("generate_study_plan", "exam_date must be in the future");
         }
 
         // Even spacing: place sessions at fractions of the interval before the
@@ -193,7 +193,7 @@ export function getLocalTools(): Record<string, Tool> {
 
         const { data, error } = await db.from("events").insert(rows).select(EVENT_COLUMNS);
 
-        if (error) fail("generate_study_plan", error.message);
+        if (error) return fail("generate_study_plan", error.message);
         return { created_count: data?.length ?? 0, study_blocks: data ?? [] };
       },
     }),
@@ -218,7 +218,7 @@ export function getLocalTools(): Record<string, Tool> {
           .select(EVENT_COLUMNS)
           .single();
 
-        if (error) fail("set_reminder", error.message);
+        if (error) return fail("set_reminder", error.message);
         return { created: data };
       },
     }),
@@ -242,7 +242,7 @@ export function getLocalTools(): Record<string, Tool> {
           .order("announced_at", { ascending: false, nullsFirst: false })
           .limit(limit ?? 10);
 
-        if (error) fail("summarize_announcements", error.message);
+        if (error) return fail("summarize_announcements", error.message);
         return { count: data?.length ?? 0, announcements: data ?? [] };
       },
     }),
