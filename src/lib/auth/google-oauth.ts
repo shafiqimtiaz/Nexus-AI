@@ -41,7 +41,7 @@ export interface RefreshResponse {
 // + `prompt=consent` force Google to return a refresh_token every time.
 export async function getAuthUrl(state: string, requestUrl: string): Promise<string> {
   const db = createServerClient();
-  const { data } = await db.from("platforms").eq("type", "google_oauth").maybeSingle();
+  const { data } = await db.from("platforms").select().eq("type", "google_oauth").maybeSingle();
 
   const clientId = data?.external_id || process.env.GOOGLE_OAUTH_CLIENT_ID;
   const defaultRedirect = new URL("/api/auth/google/callback", requestUrl).toString();
@@ -62,7 +62,7 @@ export async function getAuthUrl(state: string, requestUrl: string): Promise<str
 // Exchange the authorization code for tokens.
 export async function exchangeCode(code: string, requestUrl: string): Promise<TokenResponse> {
   const db = createServerClient();
-  const { data } = await db.from("platforms").eq("type", "google_oauth").maybeSingle();
+  const { data } = await db.from("platforms").select().eq("type", "google_oauth").maybeSingle();
 
   const clientId = data?.external_id || process.env.GOOGLE_OAUTH_CLIENT_ID;
   const clientSecret = data?.access_token || process.env.GOOGLE_OAUTH_CLIENT_SECRET;
@@ -94,7 +94,7 @@ export async function exchangeCode(code: string, requestUrl: string): Promise<To
 // NOT return a new refresh_token here — the caller keeps the existing one.
 export async function refreshAccessToken(refreshToken: string): Promise<RefreshResponse> {
   const db = createServerClient();
-  const { data } = await db.from("platforms").eq("type", "google_oauth").maybeSingle();
+  const { data } = await db.from("platforms").select().eq("type", "google_oauth").maybeSingle();
 
   const clientId = data?.external_id || process.env.GOOGLE_OAUTH_CLIENT_ID;
   const clientSecret = data?.access_token || process.env.GOOGLE_OAUTH_CLIENT_SECRET;
