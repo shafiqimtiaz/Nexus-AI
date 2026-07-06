@@ -1,5 +1,7 @@
 # Nexus 🚀
 
+**Live Link:** [https://nexus-ai-tool.vercel.app/](https://nexus-ai-tool.vercel.app/)
+
 Nexus is an **AI-powered personal academic organizer** that centralizes announcements, calendar events, resources, and an agentic AI chat into a single, unified workspace.
 
 Designed specifically for students, it integrates directly with Google Classroom (via Google OAuth) and Discord channels (via bot tokens), automatically parsing data to build calendar events, summarize announcements, organize resource links, and generate multi-day study blocks.
@@ -126,7 +128,7 @@ To seed the initial mock data for Demo Mode, run the SQL script in `supabase/see
 5. Create **OAuth Client Credentials** (Web Application).
 6. Set the authorized redirect URIs to:
    - Local: `http://localhost:3000/api/auth/google/callback`
-   - Prod: `https://your-app-domain.vercel.app/api/auth/google/callback`
+   - Prod: `https://nexus-ai-tool.vercel.app/api/auth/google/callback`
 7. Copy the client ID and secret into your env configuration.
 
 ### 2. Discord Bot Setup
@@ -220,7 +222,7 @@ Once the app is running and your database is configured:
 
 To allow Kaggle judges to review the application without requiring OAuth connections or leaking personal student data:
 
-- When visiting the URL without logging in, the app operates in a secure **Read-Only Demo Mode**.
+- When visiting the live link [https://nexus-ai-tool.vercel.app/](https://nexus-ai-tool.vercel.app/) without logging in, the app operates in a secure **Read-Only Demo Mode**.
 - This mode displays pre-seeded mock announcements, assessments, and study calendar cells.
 - Mutations (creating/deleting resources or events) and the live AI chat widget are disabled in this mode, preventing API key/token usage by unauthenticated visitors.
 - To test full capabilities locally or in production, navigate to `/login` and sign in with the owner credentials configured in your Supabase Auth panel.
