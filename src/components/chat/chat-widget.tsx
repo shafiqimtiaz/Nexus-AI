@@ -2,9 +2,15 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowExpand01Icon, ArrowShrink01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowExpand01Icon,
+  ArrowShrink01Icon,
+  Cancel01Icon,
+  Settings01Icon,
+} from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/lib/auth";
 import { ChatInterface } from "./chat-interface";
@@ -54,6 +60,16 @@ export function ChatWidget({ role }: { role: Role }) {
               <span className="text-sm font-semibold tracking-tight">Nexus AI</span>
             </div>
             <div className="flex items-center gap-1">
+              {role === "owner" && (
+                <Link
+                  href="/options"
+                  aria-label="Customize prompt"
+                  title="Customize prompt"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+                >
+                  <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4" />
+                </Link>
+              )}
               <button
                 onClick={() => setExpanded((e) => !e)}
                 aria-label={expanded ? "Minimize chat" : "Expand chat"}

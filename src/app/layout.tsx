@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nexus",
+  title: "Nexus.ai",
   description: "Your academic organizer.",
 };
 

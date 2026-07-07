@@ -156,6 +156,34 @@ export function getLocalTools(): Record<string, Tool> {
       },
     }),
 
+    edit_resource: tool({
+      description:
+        "Update an existing resource by id. Only the fields you pass are changed. Get the id from search_resources first.",
+      inputSchema: z.object({
+        id: z.string().describe("The resource id to update."),
+        title: z.string().optional(),
+        url: z.string().optional().describe("The resource URL."),
+        description: z.string().optional(),
+      }),
+      execute: async ({ id, ...fields }) => {
+        const db = createServerClient();
+        const patch = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
+        if (Object.keys(patch).length === 0) {
+          return fail("edit_resource", "no fields provided to update");
+        }
+
+        const { data, error } = await db
+          .from("resources")
+          .update(patch)
+          .eq("id", id)
+          .select(RESOURCE_COLUMNS)
+          .single();
+
+        if (error) return fail("edit_resource", error.message);
+        return { updated: data };
+      },
+    }),
+
     generate_study_plan: tool({
       description:
         "Create a study plan for an exam by generating several 'study_block' events evenly spaced between now and the exam date. Use when the student asks you to plan or schedule studying for an exam.",
