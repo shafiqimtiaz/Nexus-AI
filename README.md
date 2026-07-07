@@ -32,7 +32,7 @@ Nexus was developed for the **Kaggle 5-Day AI Agents Intensive Vibe Coding Capst
 
 - **Aggregated Dashboard:** Displays upcoming assessments (with active countdowns), today's study blocks, stats (e.g. unread count, days to next exam), and pinned resource links.
 - **Agentic AI Chat:** A multi-step tool-calling assistant backed by **Gemini 2.5 Flash**. The agent can read course data, create/modify study blocks, search resource links, parse announcements for quiz dates, and automatically save resources.
-- **Classroom & Discord Integration:** Automatically fetches Classroom course materials/assignments and Discord channel announcements.
+- **Classroom, Discord & Slack Integration:** Automatically fetches Classroom course materials/assignments and Discord/Slack channel announcements.
 - **Stale-While-Revalidate Syncing:** Ingests platform messages on-load without hitting rate limits, using a smart 15-minute cached ingestion loop.
 - **Lightweight Academic Calendar:** Custommonth-view and listing component built for tracking exam events, quizzes, and agent-generated study blocks.
 - **Resource Library:** Save, search, filter, and label academic resource links (Google Drives, PDF links, lectures).
@@ -48,7 +48,7 @@ Nexus demonstrates key agentic capabilities across the Kaggle hackathon requirem
 | :----------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **MCP Server**           | Code            | An in-repo Google Classroom MCP server using the `@modelcontextprotocol/sdk`. The Next.js API route communicates with this local server over an in-memory transport bridge, mapping Classroom announcements, coursework, and materials directly to tool schemas.                                               |
 | **Antigravity Workflow** | Video / Process | Development tasks were organized and tracked using `/docs/plans/spec.md`, `plan.md`, and `task.md`. Code iterations and dependency upgrades were managed inside the custom sandboxed workspace.                                                                                                                |
-| **Security Features**    | Code / Video    | Hardened auth system using **Supabase Auth** with RLS policies denying all public/authenticated client-side requests. All database interactions run server-side via the service-role client. Stored OAuth and Discord tokens never leave the server. Search queries are sanitized against PostgREST injection. |
+| **Security Features**    | Code / Video    | Hardened auth system using **Supabase Auth** with RLS policies denying all public/authenticated client-side requests. All database interactions run server-side through Next.js API routes gated by an owner check. Stored OAuth and Discord/Slack tokens never leave the server. Search queries are sanitized against PostgREST injection. |
 | **Deployability**        | Video / Config  | Fully configured for **Vercel** with comprehensive instructions to deploy the database migrations, set environment variables, and configure production OAuth callbacks.                                                                                                                                        |
 | **Agent Skills**         | Code            | Custom toolsets in `src/lib/ai/tools.ts` for managing calendar CRUD, resources indexing, and multi-day study plan generation.                                                                                                                                                                                  |
 
@@ -60,9 +60,9 @@ Nexus routes all external requests and database modifications through a server-s
 
 ```
                   ┌──────────────────┐          ┌─────────────┐
-                  │ Google Classroom │          │   Discord   │
+                  │ Google Classroom │          │Discord/Slack│
                   └────────┬─────────┘          └──────┬──────┘
-                           │ OAuth token                │ bot token
+                           │ OAuth token                │ user tokens
   ┌────────────────────────▼─────────┐                  │
   │  Classroom MCP Server (in-repo)  │                  │
   └────────────────────────┬─────────┘                  │
@@ -98,7 +98,8 @@ GOOGLE_OAUTH_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
 GOOGLE_OAUTH_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 GOOGLE_OAUTH_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 
-
+# Gemini (AI chat + announcement parsing)
+GEMINI_API_KEY=YOUR_GOOGLE_AI_STUDIO_KEY
 ```
 
 ---
@@ -111,11 +112,11 @@ Apply the migration script located at `supabase/migrations/001_initial_schema.sq
 This will create:
 
 - `platforms`: Storing token credentials, channel targets, and sync metadata.
-- `announcements`: Caching ingested alerts from Google Classroom and Discord (uniquely index-deduped).
+- `announcements`: Caching ingested alerts from Google Classroom, Discord, and Slack (uniquely index-deduped).
 - `events`: Academic dates, assignments, exams, and study blocks.
 - `resources` & `labels`: A taggable bookmarks repository for academic links.
 
-_Note: Row Level Security (RLS) is enabled on all tables. Since the web client accesses everything via Next.js server actions / API endpoints using the service role client, standard browser access to Supabase is disabled by design for security._
+_Note: Row Level Security (RLS) is enabled on all tables. Since the web client accesses everything through Next.js server-side API endpoints, standard browser access to Supabase data tables is disabled by design for security._
 
 To seed the initial mock data for Demo Mode, run the SQL script in `supabase/seed.sql` inside the Supabase SQL editor.
 
@@ -135,16 +136,21 @@ To seed the initial mock data for Demo Mode, run the SQL script in `supabase/see
    - Prod: `https://nexus-ai-tool.vercel.app/api/auth/google/callback`
 7. Copy the client ID and secret into your env configuration.
 
-### 2. Discord Bot Setup
+### 2. Discord / Slack Setup
 
-1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
-2. Create a new Application, navigate to the **Bot** tab, and copy your Bot Token.
-3. Scroll down to **Privileged Gateway Intents** and enable **Message Content Intent** (required to read announcements).
-4. Go to **OAuth2 -> URL Generator**:
-   - Scopes: `bot`
-   - Bot Permissions: `Read Messages/View Channels`, `Read Message History`
-5. Generate the invite URL, paste it into your browser, and add the bot to your target Discord server.
-6. Copy the Channel ID of the announcements channel where you want the bot to sync messages.
+Nexus reads channel announcements with your own account's session tokens — there is no bot to create, invite, or grant permissions to. Tokens are pasted once on the **Options** page and stored server-side only.
+
+**Discord:**
+
+1. Enable Developer Mode in Discord (Settings → Advanced), then right-click your announcements channel → **Copy Channel ID**.
+2. From an authenticated browser session, copy your account token (DevTools → Network → any `discord.com/api` request → `Authorization` header).
+3. Paste the token and Channel ID on the **Options** page.
+
+**Slack:**
+
+1. From an authenticated browser session on your workspace, copy the `xoxc-...` token (DevTools → Network) and the `xoxd-...` value of the `d` session cookie.
+2. Copy the ID of the announcements channel.
+3. Paste all three on the **Options** page.
 
 ---
 
@@ -199,7 +205,8 @@ Once the app is running and your database is configured:
 
 - Go to the **Options** page.
 - **Google Classroom:** Click **Connect Google Account**, complete the OAuth flow, choose your target academic course, and save.
-- **Discord:** Paste your Discord bot token and announcements Channel ID, then click **Connect Bot**.
+- **Discord:** Paste your Discord user token and announcements Channel ID, then connect.
+- **Slack:** Paste your `xoxc-...` token, `xoxd-...` cookie value, and Channel ID, then connect.
 
 ### 3. Sync Announcements & Calendar
 
@@ -210,7 +217,7 @@ Once the app is running and your database is configured:
 ### 4. Talk to the Agent
 
 - Go to the **AI Chat** page.
-- Ask: `"Summarize announcements"` to read recent posts from Classroom and Discord.
+- Ask: `"Summarize announcements"` to read recent posts from Classroom, Discord, and Slack.
 - Ask: `"Create a study block for Math exam this Friday from 2 PM to 4 PM"` — the agent calls database tools and places it on your calendar.
 - Ask: `"Find resources about algorithms"` or `"Save a resource link http://example.com with label Exam"` to index links.
 - Ask: `"Generate a study plan for my upcoming biology test on July 10"` to let the agent auto-populate multi-day calendar blocks.

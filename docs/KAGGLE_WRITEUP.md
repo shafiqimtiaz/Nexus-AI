@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary & Abstract
 
-**Nexus AI** is a personal academic concierge designed to address the fragmentation of modern digital classrooms. Students today face a constant cognitive tax: class announcements are scattered on Discord, course assignments are listed on Google Classroom, and study blocks must be manually scheduled on Google Calendar. This fragmentation leads to missed deadlines, sub-optimal preparation, and constant platform-switching.
+**Nexus AI** is a personal academic concierge designed to address the fragmentation of modern digital classrooms. Students today face a constant cognitive tax: class announcements are scattered across Discord and Slack, course assignments are listed on Google Classroom, and study blocks must be manually scheduled on Google Calendar. This fragmentation leads to missed deadlines, sub-optimal preparation, and constant platform-switching.
 
 Nexus centralizes these feeds into a single unified workspace. At its core is an **Agentic AI Concierge** powered by Gemini. By leveraging custom tools, a local Model Context Protocol (MCP) server for Google Classroom, and a web-scraping search engine, the agent dynamically parses announcements, syncs assignments, manages calendar events, indexes resources, and builds multi-day study schedules. By integrating write permissions directly to the user's **Google Calendar**, Nexus turns conversations into scheduled, structured actions.
 
@@ -21,9 +21,9 @@ Nexus routes all operations through a secure Next.js server boundary to prevent 
 
 ```
                   ┌──────────────────┐          ┌─────────────┐
-                  │ Google Classroom │          │   Discord   │
+                  │ Google Classroom │          │Discord/Slack│
                   └────────┬─────────┘          └──────┬──────┘
-                           │ OAuth token                │ bot token
+                           │ OAuth token                │ user tokens
   ┌────────────────────────▼─────────┐                  │
   │  Classroom MCP Server (in-repo)  │                  │
   └────────────────────────┬─────────┘                  │
@@ -47,7 +47,7 @@ Nexus routes all operations through a secure Next.js server boundary to prevent 
 Instead of loading external APIs on every render (which triggers rate limits), Nexus implements a **Stale-While-Revalidate Sync-on-Load** routine.
 * When a user visits the Dashboard, the frontend hits `/api/sync`.
 * If data was synced within the last 15 minutes, it returns cached records from Supabase.
-* Otherwise, it asynchronously crawls Google Classroom (via MCP tools) and Discord (using a bot client), parses new assignments, creates countdowns, and updates the local cache database.
+* Otherwise, it asynchronously pulls from Google Classroom (via MCP tools) and from Discord and Slack channels (using the owner's own paste-in session tokens — no bots to create or invite), parses new assignments, creates countdowns, and updates the local cache database.
 
 ---
 
@@ -64,11 +64,10 @@ The agent's capabilities are divided into dedicated tools inside [tools.ts](file
 
 ### Mid-Conversation Model Selector
 To accommodate different latency and cost budgets, the frontend features a **mid-conversation model selector** at the bottom of the prompt interface. It supports:
-* `gemini-flash-lite-latest` (Default, low latency)
-* `gemini-3.5-flash` / `gemini-2.5-flash` / `gemini-1.5-flash`
-* `gemini-2.5-pro` / `gemini-1.5-pro` (For complex scheduling and planning tasks)
+* `gemini-3.1-flash-lite` (Default — low latency, quick answers)
+* `gemini-3.5-flash` (For complex scheduling and multi-step planning tasks)
 
-Every generated message records the specific model used, allowing users to swap models fluidly based on the complexity of their request.
+The selected model travels with each request, so users can swap models fluidly mid-conversation based on the complexity of their request. The server validates the requested model against an allowlist before routing to Gemini.
 
 ---
 
@@ -76,25 +75,25 @@ Every generated message records the specific model used, allowing users to swap 
 
 As a concierge application connecting to personal accounts, security is paramount. Nexus implements three core security guardrails:
 
-* **Row-Level Security (RLS):** Every database table in Supabase is protected by strict RLS policies. User data and external connection tokens (Google Classroom OAuth codes, Discord bot keys) are stored securely and never exposed to the client browser.
-* **Server-Only API execution:** The frontend never connects to Supabase or Google API endpoints directly. All mutations and token exchanges happen within Next.js API route handlers using the service-role client.
+* **Row-Level Security (RLS):** Every database table in Supabase is protected by strict RLS policies. User data and external connection tokens (Google Classroom OAuth codes, Discord/Slack user tokens) are stored securely and never exposed to the client browser.
+* **Server-Only API execution:** The frontend never connects to Supabase data tables or Google API endpoints directly. All mutations and token exchanges happen server-side within Next.js API route handlers, gated by an owner check (`requireOwner`) that verifies the session against Supabase Auth before any write.
 * **Public Guest Demo Mode:** To meet the hackathon requirements of a public link without requiring judges to link their private Google Classroom accounts, Nexus implements a gated **Demo Mode**. Guest users browse a fully-featured, read-only mocked state with seeded data, while write features and Gemini API routing are completely locked.
 
 ---
 
-## 5. Visual Design System: Paper Aesthetic
+## 5. Visual Design System
 
-Nexus transitioned to the **Paper Design System**—a warm, editorial, and minimal aesthetic that evokes the feel of a student's paper notebook.
+Nexus uses a minimal, dark-first interface that keeps a student's attention on dates and deadlines rather than on chrome.
 
-* **Typography:** Montserrat loaded from Google Fonts serves as the primary typeface. Headings are styled with a medium weight (500) to keep the text looking soft, elegant, and readable.
-* **Palette:** Warm whites (`#FCFCF9` paper background) and soft grays (`#EFEFE4` cream container backdrops) paired with warm dark gray text (`#2C2C2C`) and minimal blue accent tags (`#5D8CD7`).
-* **Outlines over Shadows:** All shadows are replaced with thin 1px outline borders (`foreground/6%` in light mode, `white/10%` in dark mode) to create spatial clarity without visual clutter.
-* **Tactility:** Buttons use a 6px border radius, transition animations (150ms ease-out), and a scale press animation (`active:scale-[0.97]`) to feel physical and tactile.
+* **Typography:** Geist Sans and Geist Mono, loaded through `next/font`, give the UI a clean, contemporary voice with monospace reserved for timestamps and data.
+* **Palette:** A near-black canvas (`oklch(0.145 0 0)`) with slightly raised cards (`oklch(0.205 0 0)`) and a single emerald primary accent (`oklch(0.696 0.155 163)`) reserved for active navigation and stat icons. A mirrored light-mode token set follows the system preference via `next-themes`.
+* **Design tokens:** Every color is defined once as a CSS variable and consumed through Tailwind CSS v4's `@theme` mapping, so components never hard-code a color.
+* **Iconography:** Hugeicons throughout at a consistent small sizing, for a lighter visual weight than filled icon sets, with a collapsible sidebar for a focused reading column.
 
 ---
 
 ## 6. Future Roadmap
 
 1. **Syllabus PDF Processing:** Equipping the agent with tools to parse uploaded syllabus PDFs and automatically schedule the entire semester's calendar in one click.
-2. **Slack & Moodle Integrations:** Supporting additional platform ingestions for universities that use Moodle/Canvas or host class discussions on Slack.
+2. **Moodle & Canvas Integrations:** Supporting additional platform ingestions for universities that host coursework on Moodle or Canvas.
 3. **Bidirectional Calendar Sync:** Monitoring changes made directly on Google Calendar to automatically reschedule study sessions if the student moves a conflict.
