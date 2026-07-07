@@ -59,9 +59,23 @@ function parseChannelIds(raw: string | null): string[] {
 }
 
 // First ~60 chars of the announcement text as a title, or null when empty.
+// Used at ingestion; the concierge pass later replaces this with an AI title.
 function deriveTitle(text: string): string | null {
   const trimmed = text.trim();
   return trimmed ? trimmed.slice(0, 60) : null;
+}
+
+// Sanitize an AI-generated title: strip markdown/HTML, unwrap quotes, collapse
+// whitespace, and cap length. Returns null if nothing usable remains.
+function sanitizeTitle(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const cleaned = raw
+    .replace(/<[^>]*>/g, "")
+    .replace(/[*_`#>~]/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/^["'“”‘’\s]+|["'“”‘’\s]+$/g, "")
+    .trim();
+  return cleaned ? cleaned.slice(0, 80) : null;
 }
 
 // Insert-only dedup: existing (platform_id, external_id) rows are left untouched.
@@ -414,6 +428,7 @@ Announcement content:
 Rules:
 - Respond ONLY with a valid JSON object matching the following TypeScript type:
 {
+  title: string; // a concise, human-readable headline for this announcement (max ~8 words), plain text only — no markdown, quotes, or emoji
   hasEvent: boolean;
   event?: {
     title: string;
@@ -441,6 +456,11 @@ Rules:
             .trim();
           try {
             const result = JSON.parse(cleanText);
+
+            const aiTitle = sanitizeTitle(result.title);
+            if (aiTitle) {
+              await db.from("announcements").update({ title: aiTitle }).eq("id", ann.id);
+            }
 
             if (result.hasEvent && result.event) {
               const eventRow = {
