@@ -1,9 +1,10 @@
 -- Nexus — Initial Database Schema
 
--- Platform connections (google_classroom uses OAuth tokens; discord stores bot token in access_token)
+-- Platform connections (google_classroom uses OAuth tokens; discord/slack store user
+-- session tokens in access_token — slack keeps its `d` cookie in refresh_token)
 CREATE TABLE platforms (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  type TEXT NOT NULL UNIQUE CHECK (type IN ('google_classroom', 'discord')),
+  type TEXT NOT NULL UNIQUE CHECK (type IN ('google_classroom', 'discord', 'slack')),
   name TEXT NOT NULL,
   external_id TEXT,                -- Classroom course id / Discord channel id
   access_token TEXT,
@@ -64,6 +65,15 @@ CREATE TABLE announcements (
   UNIQUE (platform_id, external_id)
 );
 
+CREATE TABLE agent_actions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  action_type TEXT NOT NULL,       -- 'sync' | 'calendar' | 'resource'
+  source_id TEXT,                  -- originating announcement id, if any
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- RLS: deny everything to anon/authenticated; app uses service role server-side only.
 -- Enabling RLS with NO policies = deny-all except the service_role key (which bypasses RLS).
 ALTER TABLE platforms ENABLE ROW LEVEL SECURITY;
@@ -72,3 +82,4 @@ ALTER TABLE resources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE labels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resource_labels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE agent_actions ENABLE ROW LEVEL SECURITY;

@@ -25,6 +25,7 @@ Nexus was developed for the **Kaggle 5-Day AI Agents Intensive Vibe Coding Capst
 7. [Getting Started (Local Development)](#-getting-started-local-development)
 8. [Deployment Guide (Vercel)](#-deployment-guide-vercel)
 9. [Public Demo Mode](#-public-demo-mode)
+10. [Privacy Policy](./PRIVACY.md)
 
 ---
 

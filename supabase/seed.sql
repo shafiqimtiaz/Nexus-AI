@@ -71,3 +71,16 @@ VALUES
   ('33333333-3333-3333-3333-333333333331', '22222222-2222-2222-2222-222222222222'),
   ('33333333-3333-3333-3333-333333333332', '22222222-2222-2222-2222-222222222221'),
   ('33333333-3333-3333-3333-333333333333', '22222222-2222-2222-2222-222222222222');
+
+-- Agent activity (autonomous concierge audit trail shown on the dashboard)
+INSERT INTO agent_actions (title, description, action_type, source_id, created_at)
+VALUES
+  ('Concierge Sync Run',
+    'Scanned Google Classroom and Discord for study events.',
+    'sync', NULL, now() - interval '4 hours'),
+  ('Autoscheduled Midterm',
+    'Ingested CS 101 Midterm announcement and added study sessions on Google Calendar.',
+    'calendar', 'demo-ann-1', now() - interval '3 hours 45 minutes'),
+  ('Autosaved Resource Link',
+    'Extracted study reference link "Big-O Cheat Sheet" from announcement and saved it to Resources.',
+    'resource', 'demo-ann-2', now() - interval '2 hours');
