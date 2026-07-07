@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   Notification03Icon,
@@ -5,19 +8,36 @@ import {
   ClipboardListIcon,
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent } from "@/components/ui/card";
-import type { DashboardData } from "@/lib/dashboard";
+import { AssignmentsModal } from "@/components/dashboard/assignments-modal";
+import { cn } from "@/lib/utils";
+import type { DashboardData, DashboardEvent } from "@/lib/dashboard";
 
 function Stat({
   icon,
   value,
   label,
+  onClick,
 }: {
   icon: IconSvgElement;
   value: string;
   label: string;
+  onClick?: () => void;
 }) {
   return (
-    <Card>
+    <Card
+      className={cn(
+        "relative",
+        onClick && "cursor-pointer transition-colors hover:bg-accent/50"
+      )}
+    >
+      {onClick && (
+        <button
+          type="button"
+          onClick={onClick}
+          className="absolute inset-0 z-10"
+          aria-label={label}
+        />
+      )}
       <CardContent className="flex items-center gap-4">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <HugeiconsIcon icon={icon} className="h-5 w-5" />
@@ -33,36 +53,52 @@ function Stat({
   );
 }
 
-export function QuickStats({ stats }: { stats: DashboardData["stats"] }) {
+export function QuickStats({
+  stats,
+  assignments,
+}: {
+  stats: DashboardData["stats"];
+  assignments: DashboardEvent[];
+}) {
+  const [modalOpen, setModalOpen] = useState(false);
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <Stat
-        icon={CalendarClockIcon}
-        value={
-          stats.daysToNextExam === null
-            ? "—"
-            : stats.daysToNextExam === 0
-              ? "Today"
-              : String(stats.daysToNextExam)
-        }
-        label={
-          stats.daysToNextExam === null || stats.daysToNextExam === 0
-            ? "Next exam"
-            : stats.daysToNextExam === 1
-              ? "Day to next exam"
-              : "Days to next exam"
-        }
+    <>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat
+          icon={CalendarClockIcon}
+          value={
+            stats.daysToNextExam === null
+              ? "—"
+              : stats.daysToNextExam === 0
+                ? "Today"
+                : String(stats.daysToNextExam)
+          }
+          label={
+            stats.daysToNextExam === null || stats.daysToNextExam === 0
+              ? "Next exam"
+              : stats.daysToNextExam === 1
+                ? "Day to next exam"
+                : "Days to next exam"
+          }
+        />
+        <Stat
+          icon={Notification03Icon}
+          value={String(stats.unreadAnnouncements)}
+          label="Unread announcements"
+        />
+        <Stat
+          icon={ClipboardListIcon}
+          value={String(stats.upcomingAssignments)}
+          label="Upcoming assignments"
+          onClick={() => setModalOpen(true)}
+        />
+      </div>
+
+      <AssignmentsModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        assignments={assignments}
       />
-      <Stat
-        icon={Notification03Icon}
-        value={String(stats.unreadAnnouncements)}
-        label="Unread announcements"
-      />
-      <Stat
-        icon={ClipboardListIcon}
-        value={String(stats.upcomingAssignments)}
-        label="Upcoming assignments"
-      />
-    </div>
+    </>
   );
 }

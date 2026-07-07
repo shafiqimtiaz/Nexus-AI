@@ -7,9 +7,11 @@ export type EventType = "exam" | "quiz" | "assignment" | "study_block" | "other"
 export type DashboardEvent = {
   id: string;
   title: string;
+  description: string | null;
   event_type: EventType;
   start_time: string;
   end_time: string | null;
+  source_platform: string | null;
 };
 
 export type DashboardAnnouncement = {
@@ -46,6 +48,7 @@ export type DashboardData = {
     unreadAnnouncements: number;
     upcomingAssignments: number;
   };
+  upcomingAssignmentEvents: DashboardEvent[];
   recentAnnouncements: DashboardAnnouncement[];
   pinnedResources: DashboardResource[];
   agentActions: DashboardAgentAction[];
@@ -75,7 +78,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     todayRes,
     nextExamRes,
     unreadRes,
-    assignmentsRes,
+    assignmentsCountRes,
+    assignmentEventsRes,
     announcementsRes,
     resourcesRes,
     agentActionsRes,
@@ -110,6 +114,13 @@ export async function getDashboardData(): Promise<DashboardData> {
       .eq("event_type", "assignment")
       .gte("start_time", nowIso),
     db
+      .from("events")
+      .select("id, title, description, event_type, start_time, end_time, source_platform")
+      .eq("event_type", "assignment")
+      .gte("start_time", nowIso)
+      .order("start_time", { ascending: true })
+      .limit(20),
+    db
       .from("announcements")
       .select("id, title, content, author, source_url, announced_at, platform_id")
       .order("announced_at", { ascending: false, nullsFirst: false })
@@ -140,8 +151,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     stats: {
       daysToNextExam,
       unreadAnnouncements: unreadRes.count ?? 0,
-      upcomingAssignments: assignmentsRes.count ?? 0,
+      upcomingAssignments: assignmentsCountRes.count ?? 0,
     },
+    upcomingAssignmentEvents: (assignmentEventsRes.data ?? []) as DashboardEvent[],
     recentAnnouncements: (announcementsRes.data ?? []).map((a: any) => {
       const platform = platformById.get(a.platform_id);
       return {
