@@ -187,7 +187,7 @@ export function AnnouncementsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HugeiconsIcon icon={Megaphone01Icon} className="h-5 w-5 text-primary" />
@@ -205,7 +205,7 @@ export function AnnouncementsModal({
           </p>
         ) : (
           <>
-            <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+            <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
               {items.map((item) => (
                 <AnnouncementRow key={item.id} item={item} />
               ))}

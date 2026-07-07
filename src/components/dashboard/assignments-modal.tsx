@@ -77,7 +77,7 @@ export function AssignmentsModal({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HugeiconsIcon icon={ClipboardListIcon} className="h-5 w-5 text-primary" />
@@ -90,7 +90,7 @@ export function AssignmentsModal({
             No upcoming assignments. Enjoy the break.
           </p>
         ) : (
-          <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+          <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
             {assignments.map((event) => (
               <AssignmentRow key={event.id} event={event} />
             ))}
