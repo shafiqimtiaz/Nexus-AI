@@ -21,4 +21,4 @@
 | 6.2  | README + Architecture Diagram                   | `[x]`  |
 | 6.4  | Navigation Perf Fix + loading states            | `[x]`  |
 | 6.5  | PRIVACY.md + docs alignment pass                | `[x]`  |
-| 6.3  | Video + Kaggle Writeup + SUBMIT                 | `[ ]`  |
+| 6.3  | Video + Kaggle Writeup + SUBMIT                 | `[x]`  |
