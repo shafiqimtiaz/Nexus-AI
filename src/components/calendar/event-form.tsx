@@ -172,7 +172,7 @@ export function EventForm({
               value={eventType}
               disabled={busy}
               onChange={(e) => setEventType(e.target.value as EventType)}
-              className={inputClass}
+              className={cn(inputClass, "bg-background text-foreground [&>option]:bg-background [&>option]:text-foreground")}
             >
               {TYPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
