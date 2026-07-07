@@ -19,6 +19,8 @@ export type DashboardAnnouncement = {
   author: string | null;
   source_url: string | null;
   announced_at: string | null;
+  channel: string | null;
+  platform: string | null;
 };
 
 export type DashboardResource = {
@@ -77,6 +79,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     announcementsRes,
     resourcesRes,
     agentActionsRes,
+    platformsRes,
   ] = await Promise.all([
     db
       .from("events")
@@ -117,7 +120,15 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select("id, title, description, action_type, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
+    db.from("platforms").select("id, name, type"),
   ]);
+
+  // Map platform_id → { channel name, platform type } so each announcement can
+  // show which channel and platform it came from without a DB-level join
+  // (the mock client doesn't support nested selects).
+  const platformById = new Map<string, { name: string | null; type: string | null }>(
+    (platformsRes.data ?? []).map((p: any) => [p.id, { name: p.name, type: p.type }])
+  );
 
   const daysToNextExam = nextExamRes.data?.start_time
     ? Math.max(0, differenceInCalendarDays(new Date(nextExamRes.data.start_time), now))
@@ -131,14 +142,19 @@ export async function getDashboardData(): Promise<DashboardData> {
       unreadAnnouncements: unreadRes.count ?? 0,
       upcomingAssignments: assignmentsRes.count ?? 0,
     },
-    recentAnnouncements: (announcementsRes.data ?? []).map((a: any) => ({
-      id: a.id,
-      title: a.title,
-      content: truncate(a.content ?? ""),
-      author: a.author,
-      source_url: a.source_url,
-      announced_at: a.announced_at,
-    })),
+    recentAnnouncements: (announcementsRes.data ?? []).map((a: any) => {
+      const platform = platformById.get(a.platform_id);
+      return {
+        id: a.id,
+        title: a.title,
+        content: truncate(a.content ?? ""),
+        author: a.author,
+        source_url: a.source_url,
+        announced_at: a.announced_at,
+        channel: platform?.name ?? null,
+        platform: platform?.type ?? null,
+      };
+    }),
     pinnedResources: (resourcesRes.data ?? []) as DashboardResource[],
     agentActions: (agentActionsRes.data ?? []) as DashboardAgentAction[],
   };

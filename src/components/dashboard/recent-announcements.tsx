@@ -14,6 +14,16 @@ import type { DashboardAnnouncement } from "@/lib/dashboard";
 
 const PAGE_SIZE = 5;
 
+const PLATFORM_LABELS: Record<string, string> = {
+  google_classroom: "Google Classroom",
+  discord: "Discord",
+  slack: "Slack",
+};
+
+function formatPlatform(type: string): string {
+  return PLATFORM_LABELS[type] ?? type;
+}
+
 export function RecentAnnouncements({ items, className }: { items: DashboardAnnouncement[]; className?: string }) {
   const [page, setPage] = useState(0);
   const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
@@ -53,13 +63,31 @@ export function RecentAnnouncements({ items, className }: { items: DashboardAnno
                         {item.content}
                       </p>
                     )}
-                    <div className="mt-1.5 text-xs text-muted-foreground">
-                      {item.author ? `${item.author} · ` : ""}
-                      {item.announced_at
-                        ? formatDistanceToNow(new Date(item.announced_at), {
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                      {item.author && (
+                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+                          {item.author}
+                        </span>
+                      )}
+                      {item.announced_at && (
+                        <span>
+                          {formatDistanceToNow(new Date(item.announced_at), {
                             addSuffix: true,
-                          })
-                        : ""}
+                          })}
+                        </span>
+                      )}
+                      {item.channel && (
+                        <>
+                          <span>·</span>
+                          <span>{item.channel}</span>
+                        </>
+                      )}
+                      {item.platform && (
+                        <>
+                          <span>·</span>
+                          <span>{formatPlatform(item.platform)}</span>
+                        </>
+                      )}
                     </div>
                   </>
                 );
