@@ -111,7 +111,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .gte("start_time", nowIso),
     db
       .from("announcements")
-      .select("id, title, content, author, source_url, announced_at")
+      .select("id, title, content, author, source_url, announced_at, platform_id")
       .order("announced_at", { ascending: false, nullsFirst: false })
       .limit(30),
     db.from("resources").select("id, title, url, description").eq("is_pinned", true).limit(6),
