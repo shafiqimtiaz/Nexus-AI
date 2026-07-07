@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { requireOwner } from "@/lib/auth";
 import { BASE_SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
 
 const AI_RULES_KEY = "ai_rules";
@@ -21,13 +20,10 @@ export async function GET() {
   });
 }
 
-// POST /api/settings — owner-only. Saves the custom AI rules (append-only; the
+// POST /api/settings — both roles. Saves the custom AI rules (append-only; the
 // base prompt is never editable). Select-then-update/insert instead of upsert so
 // it works against both the real client and the mock DB.
 export async function POST(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
-
   const body = await request.json().catch(() => null);
   const value = typeof body?.aiRules === "string" ? body.aiRules : "";
 

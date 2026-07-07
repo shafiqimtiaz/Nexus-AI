@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerClient } from "@/lib/supabase/server";
-import { requireOwner } from "@/lib/auth";
 
 // Nested join: each resource carries its labels through the resource_labels
 // junction table. `labels:resource_labels(label:labels(...))` aliases the
@@ -89,11 +88,8 @@ export async function GET(request: NextRequest) {
   return Response.json({ resources: flatten((data ?? []) as unknown as RawRow[]) });
 }
 
-// POST /api/resources — owner only. Inserts the resource then its label links.
+// POST /api/resources — both roles. Inserts the resource then its label links.
 export async function POST(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
-
   const body = await request.json().catch(() => null);
   if (
     !body ||
@@ -145,13 +141,10 @@ export async function POST(request: NextRequest) {
   return Response.json({ resource: await fetchOne(db, created.id as string) });
 }
 
-// PATCH /api/resources — owner only. Updates given fields; when labelIds is
+// PATCH /api/resources — both roles. Updates given fields; when labelIds is
 // present, replaces the whole label set. Also supports a bare { id, is_pinned }
 // pin toggle (which feeds the dashboard's pinned list).
 export async function PATCH(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
-
   const body = await request.json().catch(() => null);
   if (!body || typeof body.id !== "string") {
     return Response.json({ error: "A resource id is required." }, { status: 400 });
@@ -205,12 +198,9 @@ export async function PATCH(request: NextRequest) {
   return Response.json({ resource: await fetchOne(db, body.id) });
 }
 
-// DELETE /api/resources — owner only. Accepts ?id= or { id }. Label links are
+// DELETE /api/resources — both roles. Accepts ?id= or { id }. Label links are
 // removed by the ON DELETE CASCADE on resource_labels.
 export async function DELETE(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
-
   const body = await request.json().catch(() => null);
   const id = body?.id ?? request.nextUrl.searchParams.get("id");
   if (typeof id !== "string" || !id) {

@@ -67,7 +67,8 @@ async function fetchUpcoming(): Promise<CalendarEvent[]> {
 type DialogState = { mode: "create"; date: Date } | { mode: "edit"; event: CalendarEvent } | null;
 
 export function CalendarView({ role }: { role: Role }) {
-  const isOwner = role === "owner";
+  // Demo is now editable too (its writes are isolated to the mock DB).
+  const canEdit = role === "owner" || role === "demo";
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [dialog, setDialog] = useState<DialogState>(null);
 
@@ -118,7 +119,7 @@ export function CalendarView({ role }: { role: Role }) {
             Your exams, assignments, and study blocks in one place.
           </p>
         </div>
-        {isOwner && (
+        {canEdit && (
           <Button onClick={() => setDialog({ mode: "create", date: new Date() })}>
             <HugeiconsIcon icon={PlusSignIcon} className="h-4 w-4" />
             Add event
@@ -176,11 +177,11 @@ export function CalendarView({ role }: { role: Role }) {
                   return (
                     <div
                       key={key}
-                      onClick={isOwner ? () => setDialog({ mode: "create", date: day }) : undefined}
+                      onClick={canEdit ? () => setDialog({ mode: "create", date: day }) : undefined}
                       className={cn(
                         "min-h-24 border-b border-r p-1.5 [&:nth-child(7n)]:border-r-0",
                         !inMonth && "bg-muted/30 text-muted-foreground",
-                        isOwner && "cursor-pointer transition-colors hover:bg-accent"
+                        canEdit && "cursor-pointer transition-colors hover:bg-accent"
                       )}
                     >
                       <div className="mb-1 flex justify-end">
@@ -198,9 +199,9 @@ export function CalendarView({ role }: { role: Role }) {
                           <button
                             key={ev.id}
                             type="button"
-                            disabled={!isOwner}
+                            disabled={!canEdit}
                             onClick={
-                              isOwner
+                              canEdit
                                 ? (e) => {
                                     e.stopPropagation();
                                     setDialog({ mode: "edit", event: ev });
@@ -211,7 +212,7 @@ export function CalendarView({ role }: { role: Role }) {
                             className={cn(
                               "block w-full truncate rounded px-1.5 py-0.5 text-left text-xs",
                               PILL_CLASS[ev.event_type] ?? PILL_CLASS.other,
-                              isOwner && "cursor-pointer"
+                              canEdit && "cursor-pointer"
                             )}
                           >
                             {ev.title}
@@ -256,7 +257,7 @@ export function CalendarView({ role }: { role: Role }) {
                     );
                     return (
                       <li key={ev.id} className="py-3 first:pt-0 last:pb-0">
-                        {isOwner ? (
+                        {canEdit ? (
                           <button
                             type="button"
                             onClick={() => setDialog({ mode: "edit", event: ev })}
@@ -277,7 +278,7 @@ export function CalendarView({ role }: { role: Role }) {
         </div>
       </div>
 
-      {isOwner && dialog && (
+      {canEdit && dialog && (
         <EventForm
           open
           onOpenChange={(open) => {

@@ -60,16 +60,14 @@ export function ChatWidget({ role }: { role: Role }) {
               <span className="text-sm font-semibold tracking-tight">Nexus AI</span>
             </div>
             <div className="flex items-center gap-1">
-              {role === "owner" && (
-                <Link
-                  href="/options"
-                  aria-label="Customize prompt"
-                  title="Customize prompt"
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
-                >
-                  <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4" />
-                </Link>
-              )}
+              <Link
+                href="/options"
+                aria-label="Customize prompt"
+                title="Customize prompt"
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+              >
+                <HugeiconsIcon icon={Settings01Icon} className="h-4 w-4" />
+              </Link>
               <button
                 onClick={() => setExpanded((e) => !e)}
                 aria-label={expanded ? "Minimize chat" : "Expand chat"}

@@ -13,7 +13,6 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Role } from "@/lib/auth";
 
 type SettingsResponse = { aiRules: string; basePrompt: string };
 
@@ -23,8 +22,7 @@ async function fetchSettings(): Promise<SettingsResponse> {
   return res.json();
 }
 
-export function AiRulesCard({ role }: { role: Role }) {
-  const isDemo = role === "demo";
+export function AiRulesCard() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
 
@@ -97,7 +95,7 @@ export function AiRulesCard({ role }: { role: Role }) {
           <textarea
             id="ai-rules"
             value={rules}
-            disabled={isDemo || isLoading || save.isPending}
+            disabled={isLoading || save.isPending}
             onChange={(e) => setRules(e.target.value)}
             rows={6}
             placeholder={
@@ -109,7 +107,7 @@ export function AiRulesCard({ role }: { role: Role }) {
 
         <div className="flex flex-wrap items-center gap-2">
           <Button
-            disabled={isDemo || isLoading || save.isPending || !dirty}
+            disabled={isLoading || save.isPending || !dirty}
             onClick={() => save.mutate()}
           >
             {save.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
@@ -119,8 +117,6 @@ export function AiRulesCard({ role }: { role: Role }) {
             <span className="text-xs text-muted-foreground">Saved</span>
           )}
         </div>
-
-        {isDemo && <p className="text-xs text-muted-foreground">Log in to edit AI rules.</p>}
       </CardContent>
     </Card>
   );

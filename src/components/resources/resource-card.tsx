@@ -38,11 +38,11 @@ function LabelBadge({ label }: { label: Label }) {
 
 export function ResourceCard({
   resource,
-  isOwner,
+  canEdit,
   onEdit,
 }: {
   resource: Resource;
-  isOwner: boolean;
+  canEdit: boolean;
   onEdit: () => void;
 }) {
   const queryClient = useQueryClient();
@@ -102,7 +102,7 @@ export function ResourceCard({
             <HugeiconsIcon icon={ExternalLinkIcon} className="h-3.5 w-3.5 shrink-0" />
           </a>
         </CardTitle>
-        {isOwner && (
+        {canEdit && (
           <Button
             variant={resource.is_pinned ? "secondary" : "ghost"}
             size="icon-sm"
@@ -132,7 +132,7 @@ export function ResourceCard({
           </div>
         )}
 
-        {isOwner && (
+        {canEdit && (
           <div className="mt-auto flex justify-end gap-1 pt-1">
             <Button
               variant="ghost"

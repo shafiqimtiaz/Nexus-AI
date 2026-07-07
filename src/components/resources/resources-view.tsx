@@ -45,7 +45,8 @@ async function fetchLabels(): Promise<Label[]> {
 type DialogState = { mode: "create" } | { mode: "edit"; resource: Resource } | null;
 
 export function ResourcesView({ role }: { role: Role }) {
-  const isOwner = role === "owner";
+  // Demo is now editable too (its writes are isolated to the mock DB).
+  const canEdit = role === "owner" || role === "demo";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
@@ -83,7 +84,7 @@ export function ResourcesView({ role }: { role: Role }) {
             Your links, notes, and references — labelled and searchable.
           </p>
         </div>
-        {isOwner && (
+        {canEdit && (
           <Button onClick={() => setDialog({ mode: "create" })}>
             <HugeiconsIcon icon={PlusSignIcon} className="h-4 w-4" />
             Add resource
@@ -156,7 +157,7 @@ export function ResourcesView({ role }: { role: Role }) {
               ? activeLabelName
                 ? `No matches for “${activeLabelName}”.`
                 : "No matches."
-              : isOwner
+              : canEdit
                 ? "No resources yet — add your first link."
                 : "No resources yet."}
           </p>
@@ -167,14 +168,14 @@ export function ResourcesView({ role }: { role: Role }) {
             <ResourceCard
               key={resource.id}
               resource={resource}
-              isOwner={isOwner}
+              canEdit={canEdit}
               onEdit={() => setDialog({ mode: "edit", resource })}
             />
           ))}
         </div>
       )}
 
-      {isOwner && dialog && (
+      {canEdit && dialog && (
         <ResourceForm
           open
           onOpenChange={(open) => {

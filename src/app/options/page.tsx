@@ -19,7 +19,7 @@ export default async function OptionsPage() {
       </div>
 
       <div className="space-y-4">
-        <AiRulesCard role={role} />
+        <AiRulesCard />
         <PlatformCard
           type="gemini"
           displayName="Google Gemini"

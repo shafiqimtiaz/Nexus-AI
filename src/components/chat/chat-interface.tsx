@@ -25,6 +25,11 @@ function nextId(): string {
   return `m${idCounter}`;
 }
 
+// Demo users bring their own Gemini key. It lives only in this browser and is
+// sent with each chat request via the x-gemini-key header — never persisted
+// server-side.
+const DEMO_KEY_STORAGE = "nexus_demo_gemini_key";
+
 // Parse the AI SDK UI message stream (SSE: `data: {json}\n\n`) and drive the
 // passed callbacks. We split the byte stream on blank lines, strip the `data: `
 // prefix, JSON.parse each event, and dispatch by its `type` field. The exact
@@ -109,10 +114,19 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [demoKey, setDemoKey] = useState("");
+  const [demoKeyInput, setDemoKeyInput] = useState("");
   const [selectedModel, setSelectedModel] = useState("gemini-flash-lite-latest");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Demo mode reads its key from localStorage — no server round trip.
+    if (isDemo) {
+      const saved = localStorage.getItem(DEMO_KEY_STORAGE) ?? "";
+      setDemoKey(saved);
+      setHasKey(saved !== "");
+      return;
+    }
     async function checkKey() {
       try {
         const res = await fetch("/api/platforms");
@@ -125,7 +139,21 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
       }
     }
     checkKey();
-  }, []);
+  }, [isDemo]);
+
+  const saveDemoKey = (raw: string) => {
+    const trimmed = raw.trim();
+    localStorage.setItem(DEMO_KEY_STORAGE, trimmed);
+    setDemoKey(trimmed);
+    setHasKey(trimmed !== "");
+  };
+
+  const clearDemoKey = () => {
+    localStorage.removeItem(DEMO_KEY_STORAGE);
+    setDemoKey("");
+    setDemoKeyInput("");
+    setHasKey(false);
+  };
 
   // Mutate the last (assistant) message in place via functional update.
   const updateAssistant = (mutate: (m: ChatMessage) => void) => {
@@ -159,7 +187,8 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
 
   async function send() {
     const text = input.trim();
-    if (!text || busy || isDemo) return;
+    if (!text || busy) return;
+    if (isDemo && !demoKey) return;
 
     const userMsg: ChatMessage = {
       id: nextId(),
@@ -176,9 +205,11 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
     setBusy(true);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (isDemo && demoKey) headers["x-gemini-key"] = demoKey;
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           messages: history.map((m) => ({ role: m.role, content: m.content })),
           model: selectedModel,
@@ -188,7 +219,7 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
       if (!res.ok || !res.body) {
         const msg =
           res.status === 403
-            ? "Chat is owner-only. Log in to use the agent."
+            ? "Add a Gemini API key to use the agent."
             : `Request failed (${res.status}).`;
         updateAssistant((m) => {
           m.content = msg;
@@ -224,9 +255,16 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
 
   return (
     <div className="flex h-full flex-col">
-      {isDemo && (
-        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-          Demo mode — log in to chat with the agent. (See the demo video for the agent in action.)
+      {isDemo && hasKey && (
+        <div className="mb-3 flex items-center justify-between gap-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+          <span className="text-xs font-medium">Demo mode — using your Gemini key (stored in this browser).</span>
+          <button
+            type="button"
+            onClick={clearDemoKey}
+            className="shrink-0 text-xs font-semibold underline underline-offset-2 hover:opacity-80"
+          >
+            Change key
+          </button>
         </div>
       )}
 
@@ -247,7 +285,49 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
         </div>
       )}
 
-      {!hasKey && hasKey !== null && (
+      {!hasKey && hasKey !== null && isDemo && (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center border border-dashed rounded-lg bg-card shadow-sm space-y-4">
+          <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+            <HugeiconsIcon icon={Key01Icon} className="h-6 w-6" />
+          </div>
+          <div className="max-w-md space-y-2">
+            <h3 className="text-lg font-semibold tracking-tight">Add your Gemini API key</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Demo mode. Paste a Gemini API key to try the agent — it&apos;s stored only in this
+              browser and sent with your requests, never saved on the server. Get a free key at{" "}
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
+                Google AI Studio
+              </a>
+              .
+            </p>
+          </div>
+          <form
+            className="flex w-full max-w-md gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              saveDemoKey(demoKeyInput);
+            }}
+          >
+            <Input
+              type="password"
+              value={demoKeyInput}
+              onChange={(e) => setDemoKeyInput(e.target.value)}
+              placeholder="AIza…"
+              className="h-10"
+            />
+            <Button type="submit" disabled={!demoKeyInput.trim()} className="cursor-pointer">
+              Save
+            </Button>
+          </form>
+        </div>
+      )}
+
+      {!hasKey && hasKey !== null && !isDemo && (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center border border-dashed rounded-lg bg-card shadow-sm space-y-4">
           <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
             <HugeiconsIcon icon={Key01Icon} className="h-6 w-6" />
@@ -321,7 +401,7 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
           void send();
         }}
       >
-        {!isDemo && hasKey && expanded && (
+        {hasKey && expanded && (
           <select
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
@@ -349,12 +429,16 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            isDemo ? "Log in to chat with Nexus" : !hasKey ? "API Key required" : "Message Nexus…"
+            !hasKey
+              ? isDemo
+                ? "Add a Gemini key to chat"
+                : "API Key required"
+              : "Message Nexus…"
           }
-          disabled={isDemo || busy || !hasKey}
+          disabled={busy || !hasKey}
           className="h-10"
         />
-        <Button type="submit" disabled={isDemo || busy || !input.trim() || !hasKey}>
+        <Button type="submit" disabled={busy || !input.trim() || !hasKey}>
           {busy ? (
             <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
           ) : (

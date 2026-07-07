@@ -1,16 +1,17 @@
 import { NextRequest } from "next/server";
 import { streamText, stepCountIs, type ModelMessage } from "ai";
 import { google, createGoogle } from "@ai-sdk/google";
-import { requireOwner } from "@/lib/auth";
+import { getRole } from "@/lib/auth";
 import { getLocalTools } from "@/lib/ai/tools";
 import { getClassroomTools } from "@/lib/ai/mcp-client";
 import { buildSystemPrompt } from "@/lib/ai/system-prompt";
 import { createServerClient } from "@/lib/supabase/server";
 
-// The chat agent. Owner-only: it mutates the DB (creates/edits events, saves
-// resources) and burns LLM tokens, so demo users are rejected before any model
-// call. Multi-step (stopWhen: stepCountIs(8)) so the model can call tools and
-// then answer in the same turn. Streams back the AI SDK UI message protocol.
+// The chat agent. Owner uses the server-configured Gemini key; demo users may
+// bring their own key via the `x-gemini-key` header (kept in the browser's
+// localStorage, never persisted server-side) so judges can test the agent.
+// Multi-step (stopWhen: stepCountIs(8)) so the model can call tools and then
+// answer in the same turn. Streams back the AI SDK UI message protocol.
 
 const ALLOWED_MODELS = [
   "gemini-flash-lite-latest",
@@ -25,8 +26,16 @@ if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY && process.env.GEMINI_API_KEY) {
 }
 
 export async function POST(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
+  const role = await getRole();
+  const demoKey = request.headers.get("x-gemini-key")?.trim() || undefined;
+
+  // Demo users must supply their own key; owners rely on the server-side key.
+  if (role !== "owner" && !demoKey) {
+    return Response.json(
+      { error: "Add your own Gemini API key to test the agent in demo mode." },
+      { status: 403 }
+    );
+  }
 
   const body = await request.json().catch(() => null);
   const messages = body?.messages as ModelMessage[] | undefined;
@@ -53,9 +62,10 @@ export async function POST(request: NextRequest) {
   const customRules = rulesRes.data?.value as string | undefined;
 
   const apiKey =
-    geminiPlatform?.is_connected && geminiPlatform?.access_token
+    demoKey ??
+    (geminiPlatform?.is_connected && geminiPlatform?.access_token
       ? geminiPlatform.access_token
-      : process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+      : process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY);
 
   const googleProvider = createGoogle({
     apiKey,

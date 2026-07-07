@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { requireOwner } from "@/lib/auth";
 import type { EventType } from "@/lib/dashboard";
 import { writeToGoogleCalendar } from "@/lib/auth/google-oauth";
 
@@ -41,11 +40,8 @@ export async function GET(request: NextRequest) {
   return Response.json({ events: data ?? [] });
 }
 
-// POST /api/events — owner only. Creates a manual event.
+// POST /api/events — both roles. Creates a manual event (demo writes to mock DB).
 export async function POST(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
-
   const body = await request.json().catch(() => null);
   if (
     !body ||
@@ -87,11 +83,8 @@ export async function POST(request: NextRequest) {
   return Response.json({ event: data });
 }
 
-// PATCH /api/events — owner only. Updates the given fields on one event by id.
+// PATCH /api/events — both roles. Updates the given fields on one event by id.
 export async function PATCH(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
-
   const body = await request.json().catch(() => null);
   if (!body || typeof body.id !== "string") {
     return Response.json({ error: "An event id is required." }, { status: 400 });
@@ -136,11 +129,8 @@ export async function PATCH(request: NextRequest) {
   return Response.json({ event: data });
 }
 
-// DELETE /api/events — owner only. Accepts ?id= or a JSON body { id }.
+// DELETE /api/events — both roles. Accepts ?id= or a JSON body { id }.
 export async function DELETE(request: NextRequest) {
-  const denied = await requireOwner();
-  if (denied) return denied;
-
   const body = await request.json().catch(() => null);
   const id = body?.id ?? request.nextUrl.searchParams.get("id");
   if (typeof id !== "string" || !id) {
