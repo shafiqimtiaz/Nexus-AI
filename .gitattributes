@@ -1,0 +1,13 @@
+# Force LF line endings for all text files in both the repo and working tree.
+# Prevents Git's CRLF auto-conversion warnings on Windows checkouts.
+* text=auto eol=lf
+
+# Binary files that must never be treated as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
