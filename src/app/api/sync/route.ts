@@ -91,6 +91,19 @@ function sanitizeSummary(raw: unknown): string | null {
   return cleaned ? cleaned.slice(0, 500) : null;
 }
 
+// Normalize an event title for de-duplication: lowercase and drop everything
+// after a colon / em-dash / en-dash (the "subtitle"), so "Quiz 2" and
+// "Quiz 2: Clipping Algorithms" collapse to the same key. Mirrors the
+// events_auto_dedup_idx expression in migration 011.
+function normalizeEventTitle(title: string | null): string {
+  if (!title) return "";
+  return title
+      .replace(/[:–—].*$/, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // Google Calendar has no exam/quiz/assignment concept, so imported events would
 // all default to "other" and never surface in the dashboard's typed widgets.
 // Best-effort classify from the title keywords; fall back to "other".
@@ -214,17 +227,24 @@ async function syncGoogleCalendar(
   );
 
   // Content-dedup guard. Google Calendar can itself hold several events with the
-  // same title and time (legacy junk from the old concierge). Mirroring by id
-  // would recreate every one of them locally. Collapse to a single row by
-  // skipping the import of any Google event whose (title, start_time) already
-  // exists locally. Keyed on lowercased title + start epoch (format-agnostic).
-  const { data: contentRows } = await db.from("events").select("title, start_time");
-  const contentKey = (title: string | null, start: string | null): string => {
+  // same title and time (legacy junk from the old concierge, or "Quiz 2" vs
+  // "Quiz 2: Clipping Algorithms"). Mirroring by id would recreate every one of
+  // them locally. Collapse to a single row by skipping the import of any Google
+  // event whose (normalized title, start_time, event_type) already exists
+  // locally. Mirrors migration 011's events_auto_dedup_idx key.
+  const { data: contentRows } = await db
+    .from("events")
+    .select("title, event_type, start_time");
+  const contentKey = (
+    title: string | null,
+    eventType: string | null,
+    start: string | null
+  ): string => {
     const ms = start ? new Date(start).getTime() : NaN;
-    return `${(title ?? "").trim().toLowerCase()} ${ms}`;
+    return `${ms} ${eventType ?? ""} ${normalizeEventTitle(title)}`;
   };
   const seenContent = new Set<string>(
-    (contentRows ?? []).map((r: any) => contentKey(r.title, r.start_time))
+    (contentRows ?? []).map((r: any) => contentKey(r.title, r.event_type, r.start_time))
   );
 
   // Google → local. Update existing by id (preserve event_type). Insert new
@@ -243,7 +263,7 @@ async function syncGoogleCalendar(
         })
         .eq("id", existing.id);
     } else {
-      const key = contentKey(ev.summary, ev.startTime);
+      const key = contentKey(ev.summary, classifyEventType(ev.summary), ev.startTime);
       if (seenContent.has(key)) continue; // redundant Google event — don't duplicate
       await db.from("events").insert({
         title: ev.summary,
@@ -616,8 +636,8 @@ Rules:
                 return { ...e, end_time };
               });
 
-            const EVENT_COLS_FULL = "id, source_platform, source_external_id";
-            const scheduled: string[] = [];
+              const EVENT_COLS_FULL = "id, source_platform, source_external_id, title";
+              const scheduled: string[] = [];
 
             for (let i = 0; i < events.length; i++) {
               const ev = events[i];
@@ -643,15 +663,18 @@ Rules:
                 .eq("source_external_id", autoExternalId)
                 .maybeSingle();
 
-              const { data: existingByContent } = existingByAuto
-                ? { data: null }
+              const { data: contentCandidates } = existingByAuto
+                ? { data: [] }
                 : await db
                     .from("events")
                     .select(EVENT_COLS_FULL)
-                    .eq("description", ev.description)
                     .eq("start_time", eventStart)
-                    .eq("event_type", eventType)
-                    .maybeSingle();
+                    .eq("event_type", eventType);
+              // Match on normalized title so "Quiz 2" and "Quiz 2: Clipping
+              // Algorithms" at the same time resolve to the same event.
+              const existingByContent = (contentCandidates ?? []).find(
+                (c: any) => normalizeEventTitle(c.title) === normalizeEventTitle(eventTitle)
+              );
 
               const existing = existingByAuto ?? existingByContent;
 

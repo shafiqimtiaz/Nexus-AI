@@ -403,9 +403,11 @@ export class MockSupabaseQueryBuilder {
         } else if (this.table === "events") {
           // Keep unique assignments/exams. Match either by the stable
           // (source_platform, source_external_id) key, or — for auto-detected
-          // rows — by (title, start_time, event_type), mirroring the live
-          // events_auto_dedup_idx partial unique index so duplicate
-          // concierge events can never be inserted twice.
+          // rows — by (normalized title, start_time, event_type), mirroring the
+          // live events_auto_dedup_idx partial unique index so duplicate
+          // concierge/calendar events can never be inserted twice.
+          const normTitle = (t: string) =>
+            (t || "").replace(/[:–—].*$/, "").toLowerCase().replace(/\s+/g, " ").trim();
           idx = currentData.findIndex(
             (item) =>
               (item.source_platform === row.source_platform &&
@@ -413,8 +415,7 @@ export class MockSupabaseQueryBuilder {
                 row.source_external_id) ||
               (row.is_auto_detected &&
                 item.is_auto_detected &&
-                !!row.description &&
-                item.description === row.description &&
+                normTitle(item.title) === normTitle(row.title) &&
                 item.start_time === row.start_time &&
                 item.event_type === row.event_type)
           );
