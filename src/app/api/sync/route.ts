@@ -650,12 +650,18 @@ Rules:
                     .select(EVENT_COLS_FULL)
                     .eq("title", eventTitle)
                     .eq("start_time", eventStart)
+                    .eq("event_type", eventType)
                     .maybeSingle();
 
               const existing = existingByAuto ?? existingByContent;
 
-              // 2. Upsert the event row. The unique constraint on
-              //    (source_platform, source_external_id) keeps this idempotent.
+              // 2. Upsert the event row. Authoritative de-duplication is the
+              //    partial unique index events_auto_dedup_idx
+              //    (title, start_time, event_type WHERE is_auto_detected); the
+              //    (source_platform, source_external_id) key keeps per-announcement
+              //    rows idempotent. A concurrent sync that races past this check
+              //    hits the unique index on insert — the error is swallowed below
+              //    and the row is skipped, so duplicates can never persist.
               let isNew = false;
               if (existing) {
                 await db

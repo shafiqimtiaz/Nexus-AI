@@ -401,12 +401,21 @@ export class MockSupabaseQueryBuilder {
             (item) => item.platform_id === row.platform_id && item.external_id === row.external_id
           );
         } else if (this.table === "events") {
-          // Keep unique assignments/exams
+          // Keep unique assignments/exams. Match either by the stable
+          // (source_platform, source_external_id) key, or — for auto-detected
+          // rows — by (title, start_time, event_type), mirroring the live
+          // events_auto_dedup_idx partial unique index so duplicate
+          // concierge events can never be inserted twice.
           idx = currentData.findIndex(
             (item) =>
-              item.source_platform === row.source_platform &&
-              item.source_external_id === row.source_external_id &&
-              row.source_external_id
+              (item.source_platform === row.source_platform &&
+                item.source_external_id === row.source_external_id &&
+                row.source_external_id) ||
+              (row.is_auto_detected &&
+                item.is_auto_detected &&
+                item.title === row.title &&
+                item.start_time === row.start_time &&
+                item.event_type === row.event_type)
           );
         }
 
