@@ -1,19 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ExternalLinkIcon,
   Megaphone01Icon,
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { DashboardAnnouncement } from "@/lib/dashboard";
 
-const PAGE_SIZE = 5;
+const BATCH_SIZE = 8;
 
 const SELECT_CLASS =
   "rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring";
@@ -38,8 +36,12 @@ function formatPlatform(type: string): string {
 }
 
 export function RecentAnnouncements({ items, className }: { items: DashboardAnnouncement[]; className?: string }) {
-  const [page, setPage] = useState(0);
   const [platform, setPlatform] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const [prevPlatform, setPrevPlatform] = useState(platform);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
   const platformOptions = useMemo(
     () => Array.from(new Set(items.map((i) => i.platform).filter(Boolean))) as string[],
     [items]
@@ -52,16 +54,31 @@ export function RecentAnnouncements({ items, className }: { items: DashboardAnno
     });
   }, [items, platform]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount - 1);
-  const visible = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
-
-  function resetPageThen<T>(setter: (v: T) => void) {
-    return (v: T) => {
-      setter(v);
-      setPage(0);
-    };
+  if (platform !== prevPlatform) {
+    setPrevPlatform(platform);
+    setVisibleCount(BATCH_SIZE);
   }
+
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const sentinel = sentinelRef.current;
+    const root = scrollContainerRef.current;
+    if (!sentinel || !root) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((count) => Math.min(filtered.length, count + BATCH_SIZE));
+        }
+      },
+      { root }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, filtered.length]);
 
   return (
     <Card className={cn("h-full", className)}>
@@ -75,7 +92,7 @@ export function RecentAnnouncements({ items, className }: { items: DashboardAnno
             {platformOptions.length > 0 && (
               <select
                 value={platform}
-                onChange={(e) => resetPageThen(setPlatform)(e.target.value)}
+                onChange={(e) => setPlatform(e.target.value)}
                 className={SELECT_CLASS}
                 aria-label="Filter by platform"
               >
@@ -102,8 +119,8 @@ export function RecentAnnouncements({ items, className }: { items: DashboardAnno
                 No announcements match these filters.
               </p>
             ) : (
-            <>
-            <ul className="flex flex-1 flex-col divide-y divide-border">
+            <div ref={scrollContainerRef} className="max-h-80 flex-1 overflow-y-auto scrollbar-none pr-1">
+            <ul className="flex flex-col divide-y divide-border">
               {visible.map((item) => {
                 const body = (
                   <>
@@ -177,35 +194,8 @@ export function RecentAnnouncements({ items, className }: { items: DashboardAnno
                 );
               })}
             </ul>
-
-            {pageCount > 1 && (
-              <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                <span className="text-xs text-muted-foreground">
-                  Page {current + 1} of {pageCount}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={current === 0}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted/60 disabled:pointer-events-none disabled:opacity-40"
-                    aria-label="Previous page"
-                  >
-                    <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                    disabled={current >= pageCount - 1}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted/60 disabled:pointer-events-none disabled:opacity-40"
-                    aria-label="Next page"
-                  >
-                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-            </>
+            {hasMore && <div ref={sentinelRef} className="h-px" aria-hidden="true" />}
+            </div>
             )}
           </>
         )}

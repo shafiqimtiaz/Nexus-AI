@@ -1,14 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Megaphone01Icon,
   ArrowDown01Icon,
   ExternalLinkIcon,
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Dialog,
@@ -125,9 +123,14 @@ function AnnouncementRow({
   );
 }
 
-// Cache fetch results so reopening the modal is instant
+type AnnouncementsApiResponse = {
+  items?: DashboardAnnouncement[];
+  total?: number;
+};
+
+// Cache accumulated results so reopening the modal is instant and resumes
 let cachedTotal = 0;
-let cachedPage = -1;
+let cachedPage = -1; // highest page loaded, -1 = nothing loaded yet
 let cachedItems: DashboardAnnouncement[] = [];
 
 export function AnnouncementsModal({
@@ -139,51 +142,68 @@ export function AnnouncementsModal({
 }) {
   const [items, setItems] = useState<DashboardAnnouncement[]>(cachedItems);
   const [total, setTotal] = useState(cachedTotal);
-  const [page, setPage] = useState(0);
-  const [fetching, setFetching] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [fetchingMore, setFetchingMore] = useState(false);
+  const isFetchingRef = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const hasMore = items.length < total;
 
-  const fetchPage = useCallback(async (p: number) => {
-    // Return cached page immediately if available
-    if (p === cachedPage && cachedItems.length > 0) {
-      setItems(cachedItems);
-      setTotal(cachedTotal);
-      return;
-    }
-    setFetching(true);
+  const fetchNextPage = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    const nextPage = cachedPage + 1;
+    const isInitial = cachedPage === -1;
+    if (isInitial) setLoading(true);
+    else setFetchingMore(true);
     try {
       const params = new URLSearchParams({
-        page: String(p),
+        page: String(nextPage),
         pageSize: String(PAGE_SIZE),
       });
       const res = await fetch(`/api/announcements?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      cachedItems = data.items ?? [];
+      const data: AnnouncementsApiResponse = await res.json();
+      const fetched = data.items ?? [];
+      const existingIds = new Set(cachedItems.map((item) => item.id));
+      cachedItems = [...cachedItems, ...fetched.filter((item) => !existingIds.has(item.id))];
       cachedTotal = data.total ?? 0;
-      cachedPage = p;
+      cachedPage = nextPage;
       setItems(cachedItems);
       setTotal(cachedTotal);
     } catch {
-      setItems([]);
-      setTotal(0);
+      // keep whatever was already loaded
     } finally {
-      setFetching(false);
+      isFetchingRef.current = false;
+      setLoading(false);
+      setFetchingMore(false);
     }
   }, []);
 
   useEffect(() => {
-    if (open) {
-      setPage(0);
-      fetchPage(0);
+    if (open && cachedPage === -1) {
+      fetchNextPage();
     }
-  }, [open, fetchPage]);
+  }, [open, fetchNextPage]);
 
-  const goToPage = (p: number) => {
-    setPage(p);
-    fetchPage(p);
-  };
+  useEffect(() => {
+    if (!open || !hasMore) return;
+    const sentinel = sentinelRef.current;
+    const root = scrollContainerRef.current;
+    if (!sentinel || !root) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          fetchNextPage();
+        }
+      },
+      { root }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [open, hasMore, fetchNextPage]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -195,7 +215,7 @@ export function AnnouncementsModal({
           </DialogTitle>
         </DialogHeader>
 
-        {fetching ? (
+        {loading ? (
           <div className="py-12 text-center">
             <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
@@ -204,41 +224,17 @@ export function AnnouncementsModal({
             No announcements yet.
           </p>
         ) : (
-          <>
-            <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
-              {items.map((item) => (
-                <AnnouncementRow key={item.id} item={item} />
-              ))}
-            </div>
-
-            {pageCount > 1 && (
-              <div className="flex items-center justify-between border-t border-border pt-3">
-                <span className="text-xs text-muted-foreground">
-                  {total} total &middot; Page {page + 1} of {pageCount}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => goToPage(page - 1)}
-                    disabled={page === 0}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted/60 disabled:pointer-events-none disabled:opacity-40"
-                    aria-label="Previous page"
-                  >
-                    <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => goToPage(page + 1)}
-                    disabled={page >= pageCount - 1}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted/60 disabled:pointer-events-none disabled:opacity-40"
-                    aria-label="Next page"
-                  >
-                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
-                  </button>
-                </div>
+          <div ref={scrollContainerRef} className="max-h-[70vh] space-y-2 overflow-y-auto scrollbar-none pr-1">
+            {items.map((item) => (
+              <AnnouncementRow key={item.id} item={item} />
+            ))}
+            {hasMore && <div ref={sentinelRef} className="h-px" aria-hidden="true" />}
+            {fetchingMore && (
+              <div className="py-3 text-center">
+                <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               </div>
             )}
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>
