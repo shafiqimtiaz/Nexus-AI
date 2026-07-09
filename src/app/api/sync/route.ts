@@ -9,9 +9,9 @@ import { generateText } from "ai";
 import {
   writeToGoogleCalendar,
   listGoogleCalendarEvents,
-  getGooglePlatformId,
   gcalExternalId,
   parseGcalId,
+  updateGoogleCalendarEvent,
 } from "@/lib/auth/google-oauth";
 
 // POST /api/sync — pull announcements/assignments from every connected platform
@@ -416,6 +416,7 @@ export async function POST(request: NextRequest) {
             .from("agent_actions")
             .select("id")
             .eq("source_id", ann.id)
+            .limit(1)
             .maybeSingle();
 
           if (existingAction) continue;
@@ -463,49 +464,108 @@ Rules:
             }
 
             if (result.hasEvent && result.event) {
-              const eventRow = {
-                title: result.event.title,
-                description: result.event.description,
-                event_type: result.event.event_type,
-                start_time: result.event.start_time,
-                source_platform: ann.platform_id,
-                source_external_id: `auto-${ann.id}`,
-                is_auto_detected: true,
-              };
+              const eventTitle = result.event.title;
+              const eventStart = result.event.start_time;
+              const autoExternalId = `auto-${ann.id}`;
+              const EVENT_COLS_FULL =
+                "id, gcal_event_id, source_platform, source_external_id";
 
-              const { error: evError } = await db
+              // 1. Look for an existing event we already created for this
+              //    announcement (preferred), then fall back to content match
+              //    in case the auto-id was lost in a prior bug.
+              const { data: existingByAuto } = await db
                 .from("events")
-                .upsert(eventRow, { onConflict: "source_platform,source_external_id" });
+                .select(EVENT_COLS_FULL)
+                .eq("source_platform", ann.platform_id)
+                .eq("source_external_id", autoExternalId)
+                .maybeSingle();
 
-              if (!evError) {
-                try {
+              const { data: existingByContent } = existingByAuto
+                ? { data: null }
+                : await db
+                    .from("events")
+                    .select(EVENT_COLS_FULL)
+                    .eq("title", eventTitle)
+                    .eq("start_time", eventStart)
+                    .maybeSingle();
+
+              const existing = existingByAuto ?? existingByContent;
+
+              // 2. Upsert the event row ONCE. Use the auto-id when we're
+              //    creating, and leave it untouched when we're updating — the
+              //    unique constraint on (source_platform, source_external_id)
+              //    is what makes this idempotent.
+              let eventId: string;
+              if (existing) {
+                eventId = existing.id;
+                await db
+                  .from("events")
+                  .update({
+                    description: result.event.description,
+                    event_type: result.event.event_type,
+                  })
+                  .eq("id", eventId);
+              } else {
+                const { data: inserted, error: evError } = await db
+                  .from("events")
+                  .insert({
+                    title: eventTitle,
+                    description: result.event.description,
+                    event_type: result.event.event_type,
+                    start_time: eventStart,
+                    source_platform: ann.platform_id,
+                    source_external_id: autoExternalId,
+                    is_auto_detected: true,
+                  })
+                  .select("id")
+                  .single();
+                if (evError || !inserted) {
+                  // Another concurrent sync won the race. Bail out of THIS
+                  // announcement — the other call will log the action.
+                  continue;
+                }
+                eventId = inserted.id;
+              }
+
+              // 3. Google Calendar: update if we already have an id, else
+              //    create one and remember it on the row.
+              try {
+                if (existing?.gcal_event_id) {
+                  await updateGoogleCalendarEvent(existing.gcal_event_id, {
+                    title: eventTitle,
+                    startTime: eventStart,
+                    description: result.event.description,
+                  });
+                } else {
                   const googleId = await writeToGoogleCalendar(
-                    result.event.title,
-                    result.event.start_time,
+                    eventTitle,
+                    eventStart,
                     undefined,
                     result.event.description
                   );
-                  // Store the gcal mapping on the just-upserted row so the import
-                  // reconcile matches it instead of re-importing it as a dupe.
                   if (googleId) {
-                    const gPlatformId = await getGooglePlatformId();
                     await db
                       .from("events")
-                      .update({
-                        source_platform: gPlatformId,
-                        source_external_id: gcalExternalId(googleId),
-                      })
-                      .eq("source_platform", ann.platform_id)
-                      .eq("source_external_id", `auto-${ann.id}`);
+                      .update({ gcal_event_id: googleId })
+                      .eq("id", eventId);
                   }
-                } catch {}
+                }
+              } catch {
+                // Calendar failures must not block the agent action log.
+              }
 
+              // 4. Log the action. The partial unique index on
+              //    (user_id, source_id, action_type) makes this idempotent:
+              //    a duplicate insert raises and is swallowed.
+              try {
                 await db.from("agent_actions").insert({
                   title: `Autoscheduled ${result.event.event_type}`,
-                  description: `Detected upcoming ${result.event.event_type} "${result.event.title}" on ${new Date(result.event.start_time).toLocaleDateString()} in announcements and scheduled it on Supabase & Google Calendar.`,
+                  description: `Detected upcoming ${result.event.event_type} "${eventTitle}" on ${new Date(eventStart).toLocaleDateString()} in announcements and scheduled it on Supabase & Google Calendar.`,
                   action_type: "calendar",
                   source_id: ann.id,
                 });
+              } catch {
+                // Duplicate — already logged.
               }
             }
 
