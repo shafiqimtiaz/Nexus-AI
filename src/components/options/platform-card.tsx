@@ -90,11 +90,7 @@ export function PlatformCard({
   const [botToken, setBotToken] = useState("");
   const [channelId, setChannelId] = useState("");
   const [slackCookie, setSlackCookie] = useState("");
-  // Discord/Slack support multiple channels under one token; Google flows still
-  // use the scalar `channelId` above for their Client ID.
   const [channelIds, setChannelIds] = useState<string[]>([""]);
-  // Editing channels on an already-connected Discord/Slack card. The token is
-  // never returned to the browser, so re-collect it on update.
   const [managing, setManaging] = useState(false);
 
   const updateChannel = (i: number, v: string) =>

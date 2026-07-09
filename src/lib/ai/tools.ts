@@ -10,14 +10,8 @@ import {
   parseGcalId,
 } from "@/lib/auth/google-oauth";
 
-// Local (DB-backed) AI SDK tools for the Nexus agent. Every tool uses the
-// service-role Supabase client and returns compact, JSON-serializable data so
-// the model (and the tool-call UI) stays readable. Descriptions are written for
-// the LLM: they say what the tool does and when to reach for it.
-
 const EVENT_TYPES = ["exam", "quiz", "assignment", "study_block", "other"] as const;
 
-// Columns worth handing back to the model. Token columns / internal noise stay out.
 const EVENT_COLUMNS = "id, title, description, event_type, start_time, end_time, is_auto_detected";
 const RESOURCE_COLUMNS = "id, title, url, description, is_pinned";
 
@@ -25,9 +19,6 @@ function fail(context: string, message: string) {
   return { error: `${context}: ${message}` };
 }
 
-// Map platforms.id → platforms.type so events/announcements (which store the
-// platform id in source_platform/platform_id) can report a readable platform
-// origin to the model. Returns an empty map if the lookup fails.
 async function getPlatformTypeMap(
   db: ReturnType<typeof createServerClient>
 ): Promise<Map<string, string>> {
@@ -35,9 +26,6 @@ async function getPlatformTypeMap(
   return new Map((data ?? []).map((p: any) => [p.id, p.type]));
 }
 
-// Push a freshly-created local event to Google Calendar and store the returned
-// id back on the row (source_external_id = gcal:<id>) so later edits/deletes and
-// the import reconcile can match it. No-op when Google isn't connected.
 async function pushEventToGoogle(
   db: ReturnType<typeof createServerClient>,
   eventId: string,
@@ -89,8 +77,6 @@ export function getLocalTools(): Record<string, Tool> {
 
         if (error) return fail("get_upcoming_events", error.message);
 
-        // Resolve source_platform (a platforms.id) → human platform type so the
-        // model can name the origin platform for each event.
         const platformById = await getPlatformTypeMap(db);
         const events = (data ?? []).map((e: any) => {
           const { source_platform, ...rest } = e;
@@ -131,7 +117,6 @@ export function getLocalTools(): Record<string, Tool> {
 
         if (error) return fail("create_event", error.message);
 
-        // Push to Google and store the mapping so future edits/deletes sync.
         await pushEventToGoogle(db, data.id, title, start_time, end_time, description);
 
         return { created: data };
@@ -165,8 +150,6 @@ export function getLocalTools(): Record<string, Tool> {
 
         if (error) return fail("edit_event", error.message);
 
-        // Propagate to Google. EVENT_COLUMNS omits source_external_id, so read
-        // the mapping separately.
         const { data: mapRow } = await db
           .from("events")
           .select("source_external_id")
@@ -289,8 +272,6 @@ export function getLocalTools(): Record<string, Tool> {
           return fail("generate_study_plan", "exam_date must be in the future");
         }
 
-        // Even spacing: place sessions at fractions of the interval before the
-        // exam, e.g. for 3 sessions at 1/4, 2/4, 3/4 of the way to the exam.
         const interval = examMs - now;
         const rows = Array.from({ length: count }, (_, i) => {
           const at = new Date(now + (interval * (i + 1)) / (count + 1));
@@ -309,7 +290,6 @@ export function getLocalTools(): Record<string, Tool> {
 
         if (error) return fail("generate_study_plan", error.message);
 
-        // Push each generated study block to Google and store its mapping.
         for (const created of data ?? []) {
           await pushEventToGoogle(
             db,
@@ -347,7 +327,6 @@ export function getLocalTools(): Record<string, Tool> {
 
         if (error) return fail("set_reminder", error.message);
 
-        // Push the reminder to Google and store the mapping.
         await pushEventToGoogle(db, data.id, `Reminder: ${title}`, remind_at);
 
         return { created: data };
@@ -386,8 +365,6 @@ export function getLocalTools(): Record<string, Tool> {
           const { platform_id, ...rest } = a;
           return {
             ...rest,
-            // Prefer the AI-generated summary so the model summarizes from the
-            // condensed version when present.
             summary: a.ai_summary ?? null,
             platform: platform_id ? (platformById.get(platform_id) ?? null) : null,
           };

@@ -41,7 +41,6 @@ export function ResourceForm({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [newLabel, setNewLabel] = useState("");
 
-  // Reset fields whenever the dialog opens for a different resource.
   useEffect(() => {
     if (!open) return;
     if (resource) {

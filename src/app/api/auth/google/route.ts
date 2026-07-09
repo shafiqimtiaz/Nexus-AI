@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthUrl, OAUTH_STATE_COOKIE } from "@/lib/auth/google-oauth";
 
-// GET /api/auth/google — Starts the Google OAuth flow.
-// Unlocked so users can log in and connect Classroom via Google.
 export async function GET(request: NextRequest) {
   try {
     const state = crypto.randomUUID();

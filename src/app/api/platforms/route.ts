@@ -2,8 +2,6 @@ import { NextRequest } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { requireOwner } from "@/lib/auth";
 
-// Columns safe to expose to the browser. Token columns are deliberately omitted
-// so access_token / refresh_token never leave the server.
 const SAFE_COLUMNS = "id, type, name, external_id, is_connected, last_synced_at";
 
 const PLATFORM_TYPES = ["google_classroom", "discord", "slack", "gemini", "google_oauth"] as const;
@@ -15,8 +13,7 @@ function isPlatformType(value: unknown): value is PlatformType {
   return typeof value === "string" && (PLATFORM_TYPES as readonly string[]).includes(value);
 }
 
-// Channels are stored comma-separated in the single external_id column so one
-// token can back several channels without a schema change.
+// one token can back multiple channels; stored comma-separated in external_id
 function parseChannelIds(raw: string | undefined): string[] {
   return (raw ?? "")
     .split(",")
@@ -65,13 +62,9 @@ export async function POST(request: NextRequest) {
   const type: PlatformType = body.type;
   let externalId: string | undefined = body.external_id ?? undefined;
   const accessToken: string | undefined = body.access_token ?? undefined;
-  // Slack browser tokens (xoxc-) require the `d` session cookie, stored in the
-  // refresh_token column. Other platforms leave it null.
   const refreshToken: string | undefined = body.refresh_token ?? undefined;
   let name: string | undefined = body.name ?? undefined;
 
-  // Discord connect flow: validate the user token against the channel before
-  // persisting anything.
   if (type === "discord") {
     const channelIds = parseChannelIds(externalId);
     if (!channelIds.length || !accessToken) {
@@ -104,8 +97,6 @@ export async function POST(request: NextRequest) {
     name = formatChannelName(names) ?? name ?? "Discord";
   }
 
-  // Slack connect flow: validate the browser token + `d` cookie and channel ID
-  // via conversations.info
   if (type === "slack") {
     const channelIds = parseChannelIds(externalId);
     if (!channelIds.length || !accessToken || !refreshToken) {
@@ -154,7 +145,6 @@ export async function POST(request: NextRequest) {
     name = formatChannelName(names) ?? name ?? "Slack";
   }
 
-  // Gemini connect flow: validate API key via model API call
   if (type === "gemini") {
     if (!accessToken) {
       return Response.json({ error: "A Gemini API Key is required." }, { status: 400 });
@@ -174,7 +164,6 @@ export async function POST(request: NextRequest) {
     name = "Google Gemini";
   }
 
-  // Google OAuth connect flow: save if provided, otherwise skip (fallback to env)
   if (type === "google_oauth") {
     if (!externalId?.trim() || !accessToken?.trim()) {
       return Response.json({ platform: { type, is_connected: true } });

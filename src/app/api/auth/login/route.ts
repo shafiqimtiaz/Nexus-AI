@@ -15,6 +15,5 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: error.message }, { status: 401 });
   }
 
-  // Session cookie is set via the adapter's setAll during signInWithPassword.
   return Response.json({ ok: true });
 }

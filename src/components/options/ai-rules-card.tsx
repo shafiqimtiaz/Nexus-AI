@@ -23,8 +23,6 @@ export function AiRulesCard() {
   const [rules, setRules] = useState("");
   const [showBase, setShowBase] = useState(false);
 
-  // Sync the textarea once the saved rules arrive (and only then, so we never
-  // clobber in-progress edits on refetch).
   useEffect(() => {
     if (data?.aiRules !== undefined) setRules(data.aiRules);
   }, [data?.aiRules]);

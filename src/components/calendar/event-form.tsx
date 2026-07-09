@@ -28,8 +28,6 @@ const TYPE_OPTIONS: { value: EventType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-// datetime-local <-> ISO. The input holds local wall-clock time with no zone;
-// new Date(localString) parses it as local, and toISOString() gives UTC.
 const INPUT_FORMAT = "yyyy-MM-dd'T'HH:mm";
 
 function isoToInput(iso: string | null): string {
@@ -41,7 +39,6 @@ function inputToIso(value: string): string {
   return new Date(value).toISOString();
 }
 
-// Default a create form to the clicked day at 09:00 local.
 function defaultStart(date: Date): string {
   const d = new Date(date);
   d.setHours(9, 0, 0, 0);
@@ -71,7 +68,6 @@ export function EventForm({
   const [end, setEnd] = useState("");
   const [description, setDescription] = useState("");
 
-  // Reset fields whenever the dialog opens for a different event/date.
   useEffect(() => {
     if (!open) return;
     if (event) {

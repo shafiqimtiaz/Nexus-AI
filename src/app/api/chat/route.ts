@@ -7,12 +7,6 @@ import { getClassroomTools } from "@/lib/ai/mcp-client";
 import { buildSystemPrompt } from "@/lib/ai/system-prompt";
 import { createServerClient } from "@/lib/supabase/server";
 
-// The chat agent. Owner uses the server-configured Gemini key; demo users may
-// bring their own key via the `x-gemini-key` header (kept in the browser's
-// localStorage, never persisted server-side) so judges can test the agent.
-// Multi-step (stopWhen: stepCountIs(8)) so the model can call tools and then
-// answer in the same turn. Streams back the AI SDK UI message protocol.
-
 const ALLOWED_MODELS = [
   "gemini-flash-lite-latest",
   "gemini-flash-latest",
@@ -29,7 +23,6 @@ export async function POST(request: NextRequest) {
   const role = await getRole();
   const demoKey = request.headers.get("x-gemini-key")?.trim() || undefined;
 
-  // Demo users must supply their own key; owners rely on the server-side key.
   if (role !== "owner" && !demoKey) {
     return Response.json(
       { error: "Add your own Gemini API key to test the agent in demo mode." },
@@ -52,7 +45,6 @@ export async function POST(request: NextRequest) {
 
   const tools = { ...getLocalTools(), ...(await getClassroomTools()) };
 
-  // Load custom Gemini API key from database if configured, fallback to environment key.
   const db = createServerClient();
   const [geminiRes, rulesRes] = await Promise.all([
     db.from("platforms").select("access_token, is_connected").eq("type", "gemini").maybeSingle(),

@@ -4,15 +4,8 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { tool, jsonSchema, type Tool } from "ai";
 import { createClassroomMcpServer } from "../../../mcp/classroom/server";
 
-// Bridge between the in-repo MCP server and the Vercel AI SDK. The AI SDK has no
-// native MCP support, so we spin up the MCP server in-process, connect a client
-// over a linked in-memory transport, and wrap each MCP tool as an AI SDK tool
-// whose `execute` proxies back through the MCP client. The result is a plain
-// map ready to spread into `streamText({ tools })`.
-
 type JsonSchemaInput = Parameters<typeof jsonSchema>[0];
 
-// Pull the joined text out of an MCP tool result.
 function extractText(content: Array<{ type: string; text?: string }>): string {
   return content
     .filter((part) => part.type === "text")
@@ -47,9 +40,6 @@ export async function getClassroomTools(): Promise<Record<string, Tool>> {
 
         const text = extractText(result.content as Array<{ type: string; text?: string }>);
 
-        // MCP surfaces tool-side failures (e.g. "Classroom not connected") as
-        // isError results rather than transport errors — turn them back into a
-        // thrown error so the caller/model sees the failure.
         if (result.isError) {
           throw new Error(text || "Classroom tool call failed.");
         }

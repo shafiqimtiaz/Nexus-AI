@@ -3,8 +3,6 @@ import { createServerClient } from "@/lib/supabase/server";
 
 const DEFAULT_PAGE_SIZE = 10;
 
-// GET /api/announcements?page=0&pageSize=10&platform=google_classroom&unreadOnly=true
-// Both owner and demo roles — read-only.
 export async function GET(request: NextRequest) {
   const db = createServerClient();
   const sp = request.nextUrl.searchParams;
@@ -23,8 +21,6 @@ export async function GET(request: NextRequest) {
     .order("announced_at", { ascending: false });
 
   if (platform) {
-    // We'll filter after fetching since mock-db might not support joins.
-    // Fetch platform IDs matching the type first.
     const { data: platforms } = await db.from("platforms").select("id").eq("type", platform);
     const platformIds = (platforms ?? []).map((p: any) => p.id as string);
     if (platformIds.length > 0) {
@@ -40,9 +36,8 @@ export async function GET(request: NextRequest) {
 
   let { data: allData, error } = await query;
 
-  // Fallback for mock-db which doesn't chain .in after .order properly
+  // mock-db doesn't chain .in after .order
   if (!allData && error) {
-    // Try without the .in filter
     const fallback = db
       .from("announcements")
       .select("id, title, content, ai_summary, author, source_url, announced_at, platform_id")
@@ -58,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   let items = (allData ?? []) as any[];
 
-  // Client-side filter for platform if mock-db didn't support .in chaining
+  // client-side filter for platforms (mock-db has chaining limitations)
   if (platform) {
     const { data: platforms } = await db.from("platforms").select("id").eq("type", platform);
     const platformIds = new Set((platforms ?? []).map((p: any) => p.id as string));
@@ -73,7 +68,6 @@ export async function GET(request: NextRequest) {
   const offset = page * pageSize;
   const paged = items.slice(offset, offset + pageSize);
 
-  // Map platform_id → platform name/type
   const allPlatformIds = [...new Set(paged.map((a: any) => a.platform_id).filter(Boolean))];
   const { data: platformData } =
     allPlatformIds.length > 0

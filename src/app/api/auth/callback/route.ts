@@ -19,6 +19,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Return the user to login with a failure parameter
   return NextResponse.redirect(new URL("/login?error=oauth_callback_failed", request.url));
 }

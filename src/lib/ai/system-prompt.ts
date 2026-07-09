@@ -1,8 +1,3 @@
-// System prompt for the Nexus chat agent. A function (not a constant) so the
-// injected "today" date is fresh on every request.
-
-// The locked base rules. Kept separate so the Options page can show them to the
-// owner read-only while their own rules are appended, never replacing these.
 export const BASE_SYSTEM_PROMPT = `You are Nexus, a student's academic assistant.
 
 You help the student stay on top of coursework: upcoming exams, assignments,

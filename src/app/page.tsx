@@ -8,7 +8,6 @@ import { PinnedResources } from "@/components/dashboard/pinned-resources";
 import { AgentActions } from "@/components/dashboard/agent-actions";
 import { SyncOnLoad } from "@/components/dashboard/sync-on-load";
 
-// Reads from the DB at request time, so keep it out of the build-time prerender.
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -31,7 +30,6 @@ export default async function DashboardPage() {
       </header>
 
       <div className="flex flex-col gap-6 lg:flex-row">
-        {/* Main content */}
         <div className="min-w-0 flex-1 space-y-6">
           <QuickStats
             stats={data.stats}
@@ -50,7 +48,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Right sidebar — pinned resources */}
         <aside className="flex w-full shrink-0 flex-col lg:w-64 xl:w-72">
           <div className="flex-1 lg:sticky lg:top-6">
             <PinnedResources resources={data.pinnedResources} />

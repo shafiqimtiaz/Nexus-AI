@@ -45,14 +45,12 @@ async function fetchLabels(): Promise<Label[]> {
 type DialogState = { mode: "create" } | { mode: "edit"; resource: Resource } | null;
 
 export function ResourcesView({ role }: { role: Role }) {
-  // Demo is now editable too (its writes are isolated to the mock DB).
   const canEdit = role === "owner" || role === "demo";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
 
-  // Debounce the search box so typing doesn't fire a request per keystroke.
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(t);

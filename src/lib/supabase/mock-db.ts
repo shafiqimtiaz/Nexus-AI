@@ -19,7 +19,6 @@ interface DbSchema {
 function getInitialData(): DbSchema {
   const now = new Date();
 
-  // Helper to add interval
   const addHours = (d: Date, h: number) => new Date(d.getTime() + h * 60 * 60 * 1000);
   const addDays = (d: Date, days: number) => new Date(d.getTime() + days * 24 * 60 * 60 * 1000);
 
@@ -199,7 +198,6 @@ function loadDb(): DbSchema {
     } catch {}
   }
 
-  // Seed the database
   const seed = getInitialData();
   saveDb(seed);
   return seed;
@@ -208,7 +206,7 @@ function loadDb(): DbSchema {
 function saveDb(db: DbSchema) {
   const serialized = JSON.stringify(db, null, 2);
 
-  // Write only to /tmp to prevent writing sensitive credentials back into the Git-tracked db.json file
+  // write to /tmp to avoid leaking credentials to git-tracked db.json
   try {
     const dir = path.dirname(TMP_DB_PATH);
     if (!fs.existsSync(dir)) {
@@ -342,7 +340,6 @@ export class MockSupabaseQueryBuilder {
     return this;
   }
 
-  // Support thenable behavior for await
   async then(resolve: any, reject: any) {
     try {
       const result = await this.execute();
@@ -356,18 +353,15 @@ export class MockSupabaseQueryBuilder {
     const data = readTable(this.table);
     let result = [...data];
 
-    // Apply filters
     for (const filter of this.filters) {
       result = result.filter(filter);
     }
 
-    // Apply sorting
     if (this.orderCol) {
       result.sort((a, b) => {
         const valA = a[this.orderCol!];
         const valB = b[this.orderCol!];
 
-        // Handle ISO string dates
         const timeA = Date.parse(valA);
         const timeB = Date.parse(valB);
 
@@ -382,7 +376,6 @@ export class MockSupabaseQueryBuilder {
       });
     }
 
-    // Apply limit
     if (this.limitVal !== undefined) {
       result = result.slice(0, this.limitVal);
     }
@@ -401,13 +394,13 @@ export class MockSupabaseQueryBuilder {
             (item) => item.platform_id === row.platform_id && item.external_id === row.external_id
           );
         } else if (this.table === "events") {
-          // Keep unique assignments/exams. Match either by the stable
-          // (source_platform, source_external_id) key, or — for auto-detected
-          // rows — by (normalized title, start_time, event_type), mirroring the
-          // live events_auto_dedup_idx partial unique index so duplicate
-          // concierge/calendar events can never be inserted twice.
+          // mirror live events_auto_dedup_idx to prevent duplicates
           const normTitle = (t: string) =>
-            (t || "").replace(/[:–—].*$/, "").toLowerCase().replace(/\s+/g, " ").trim();
+            (t || "")
+              .replace(/[:–—].*$/, "")
+              .toLowerCase()
+              .replace(/\s+/g, " ")
+              .trim();
           idx = currentData.findIndex(
             (item) =>
               (item.source_platform === row.source_platform &&
@@ -469,7 +462,6 @@ export class MockSupabaseQueryBuilder {
       return { data: null, error: null };
     }
 
-    // Custom nested resource join helper for resources
     if (this.table === "resources" && result.length > 0) {
       const rlData = readTable("resource_labels");
       const labels = readTable("labels");

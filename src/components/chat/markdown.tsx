@@ -1,12 +1,5 @@
 import { Fragment, type ReactNode } from "react";
 
-// Minimal markdown renderer for assistant chat messages. We can't add a
-// markdown dependency, so this covers the formats Gemini actually emits:
-// headings, bold/italic, inline code, fenced code blocks, links, blockquotes,
-// and ordered/unordered lists. Anything else falls through as plain text.
-
-// Inline: **bold**, *italic* / _italic_, `code`, [text](url). Split on the
-// first matching token, recurse on the remainder so nesting stays cheap.
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   const pattern = /(\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|_(.+?)_|`([^`]+?)`|\[([^\]]+)\]\(([^)]+)\))/;
@@ -65,7 +58,6 @@ export function Markdown({ content }: { content: string }) {
   while (i < lines.length) {
     const line = lines[i];
 
-    // Fenced code block
     const fence = line.match(/^```(\w*)\s*$/);
     if (fence) {
       const code: string[] = [];
@@ -86,7 +78,6 @@ export function Markdown({ content }: { content: string }) {
       continue;
     }
 
-    // Heading
     const heading = line.match(/^(#{1,6})\s+(.*)$/);
     if (heading) {
       const level = heading[1].length;
@@ -99,7 +90,6 @@ export function Markdown({ content }: { content: string }) {
       continue;
     }
 
-    // Blockquote
     if (/^>\s?/.test(line)) {
       const quote: string[] = [];
       while (i < lines.length && /^>\s?/.test(lines[i])) {
@@ -114,7 +104,6 @@ export function Markdown({ content }: { content: string }) {
       continue;
     }
 
-    // Unordered list
     if (/^\s*[-*]\s+/.test(line)) {
       const items: string[] = [];
       while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
@@ -131,7 +120,6 @@ export function Markdown({ content }: { content: string }) {
       continue;
     }
 
-    // Ordered list
     if (/^\s*\d+\.\s+/.test(line)) {
       const items: string[] = [];
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
@@ -148,13 +136,11 @@ export function Markdown({ content }: { content: string }) {
       continue;
     }
 
-    // Blank line → skip (paragraph separator)
     if (line.trim() === "") {
       i += 1;
       continue;
     }
 
-    // Paragraph: gather consecutive non-blank, non-special lines
     const para: string[] = [];
     while (
       i < lines.length &&

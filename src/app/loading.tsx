@@ -1,5 +1,3 @@
-// Instant navigation feedback: rendered inside the root layout's <main> while
-// the target page's server component streams in.
 export default function Loading() {
   return (
     <div className="flex h-full items-center justify-center">

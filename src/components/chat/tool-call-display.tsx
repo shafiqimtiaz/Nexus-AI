@@ -29,9 +29,6 @@ function compact(value: unknown): string {
   }
 }
 
-// A chip/card showing one agent tool invocation: the tool name, its arguments,
-// and (once available) a short done/error indicator with the result. This is
-// the visible proof that the agent is actually calling tools.
 export function ToolCallDisplay({ call }: { call: ToolCall }) {
   const [open, setOpen] = useState(false);
 

@@ -15,8 +15,6 @@ import { Button } from "@/components/ui/button";
 import type { Label, Resource } from "@/components/resources/resources-view";
 import { cn, formatUrl } from "@/lib/utils";
 
-// Soft-tinted badge from a hex color: a translucent fill with the color as text.
-// Falls back to muted styling when no color is set.
 function labelStyle(color: string | null) {
   if (!color) return undefined;
   return { backgroundColor: `${color}22`, color };

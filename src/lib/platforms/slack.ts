@@ -1,10 +1,6 @@
 import "server-only";
 import { isJoinLeaveMessage } from "@/lib/utils";
 
-// Minimal Slack browser-token history fetch. SERVER ONLY — the xoxc token and
-// the `d` session cookie are secrets and must never reach the browser. Returns
-// normalized shapes.
-
 const SLACK_API = "https://slack.com/api";
 
 export interface SlackMessage {
@@ -21,13 +17,9 @@ interface RawSlackMessage {
   user?: string;
   bot_id?: string;
   username?: string;
-  // System messages (joins, leaves, invites) carry a subtype and no academic
-  // value; we drop them during ingestion.
   subtype?: string;
 }
 
-// Slack subtypes that are pure channel-noise (members joining/leaving/being
-// added or invited) and must never become announcements.
 const SLACK_NOISE_SUBTYPES = new Set([
   "channel_join",
   "channel_leave",
@@ -48,8 +40,6 @@ function normalizeMessage(raw: RawSlackMessage, channelId: string): SlackMessage
   };
 }
 
-// Fetch channel history from conversations.history API. Browser tokens (xoxc-)
-// only authenticate when paired with the `d` session cookie.
 export async function fetchSlackMessages(
   token: string,
   cookie: string,

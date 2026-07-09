@@ -2,9 +2,6 @@ import { NextRequest } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerClient } from "@/lib/supabase/server";
 
-// Nested join: each resource carries its labels through the resource_labels
-// junction table. `labels:resource_labels(label:labels(...))` aliases the
-// junction rows to `labels`, each wrapping the joined label object.
 const SELECT =
   "id, title, url, description, is_pinned, source_platform, created_at, labels:resource_labels(label:labels(id, name, color))";
 
@@ -25,8 +22,6 @@ export type ResourceWithLabels = Omit<RawRow, "labels"> & {
   labels: RawLabel[];
 };
 
-// Collapse the nested `[{ label: {...} }]` shape into a flat `labels: [{...}]`
-// array, dropping any null joins defensively.
 function flatten(rows: RawRow[]): ResourceWithLabels[] {
   return rows.map((row) => {
     const { labels, ...rest } = row;
@@ -42,9 +37,6 @@ async function fetchOne(db: SupabaseClient, id: string): Promise<ResourceWithLab
   return data ? flatten([data as unknown as RawRow])[0] : null;
 }
 
-// GET /api/resources — both roles. Returns every resource with its labels.
-// ?q= does a case-insensitive match on title/description; ?label= restricts to
-// resources carrying that label id (the full label list is still returned).
 export async function GET(request: NextRequest) {
   const db = createServerClient();
   const q = request.nextUrl.searchParams.get("q")?.trim();
@@ -57,7 +49,6 @@ export async function GET(request: NextRequest) {
     .order("created_at", { ascending: false });
 
   if (q) {
-    // Sanitize to prevent PostgREST query parsing errors (e.g. if query contains commas/parens)
     const cleanQ = q.replace(/[()\\.,:"]/g, "");
     if (cleanQ) {
       const term = `%${cleanQ}%`;
@@ -88,7 +79,6 @@ export async function GET(request: NextRequest) {
   return Response.json({ resources: flatten((data ?? []) as unknown as RawRow[]) });
 }
 
-// POST /api/resources — both roles. Inserts the resource then its label links.
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (
@@ -141,9 +131,6 @@ export async function POST(request: NextRequest) {
   return Response.json({ resource: await fetchOne(db, created.id as string) });
 }
 
-// PATCH /api/resources — both roles. Updates given fields; when labelIds is
-// present, replaces the whole label set. Also supports a bare { id, is_pinned }
-// pin toggle (which feeds the dashboard's pinned list).
 export async function PATCH(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body || typeof body.id !== "string") {
@@ -198,8 +185,6 @@ export async function PATCH(request: NextRequest) {
   return Response.json({ resource: await fetchOne(db, body.id) });
 }
 
-// DELETE /api/resources — both roles. Accepts ?id= or { id }. Label links are
-// removed by the ON DELETE CASCADE on resource_labels.
 export async function DELETE(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const id = body?.id ?? request.nextUrl.searchParams.get("id");

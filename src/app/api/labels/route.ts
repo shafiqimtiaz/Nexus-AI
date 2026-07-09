@@ -3,7 +3,6 @@ import { createServerClient } from "@/lib/supabase/server";
 
 const SELECT = "id, name, color";
 
-// GET /api/labels — both roles. All labels, alphabetical.
 export async function GET() {
   const db = createServerClient();
   const { data, error } = await db.from("labels").select(SELECT).order("name", { ascending: true });
@@ -13,8 +12,6 @@ export async function GET() {
   return Response.json({ labels: data ?? [] });
 }
 
-// POST /api/labels — both roles. Creates a label. Name is unique; on conflict
-// return the existing row so callers can just select it.
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body || typeof body.name !== "string" || !body.name.trim()) {
@@ -28,7 +25,6 @@ export async function POST(request: NextRequest) {
   const { data, error } = await db.from("labels").insert({ name, color }).select(SELECT).single();
 
   if (error) {
-    // Unique violation — return the existing label instead of failing.
     if (error.code === "23505") {
       const { data: existing } = await db.from("labels").select(SELECT).eq("name", name).single();
       if (existing) {

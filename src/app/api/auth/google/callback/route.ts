@@ -5,9 +5,6 @@ import { exchangeCode, OAUTH_STATE_COOKIE } from "@/lib/auth/google-oauth";
 
 const CLASSROOM_COURSES_URL = "https://classroom.googleapis.com/v1/courses?courseStates=ACTIVE";
 
-// GET /api/auth/google/callback — Google redirects here with ?code & ?state.
-// Verifies CSRF state, exchanges the code, picks a Classroom course, and
-// persists the tokens. Tokens are never placed in the redirect URL.
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const optionsUrl = (query: string) => new URL(`/options?${query}`, request.url);
@@ -16,7 +13,6 @@ export async function GET(request: NextRequest) {
   const storedState = c.get(OAUTH_STATE_COOKIE)?.value;
   const state = params.get("state");
 
-  // Single-use: clear the state cookie no matter how this request resolves.
   c.delete(OAUTH_STATE_COOKIE);
 
   if (!state || !storedState || state !== storedState) {
@@ -25,7 +21,6 @@ export async function GET(request: NextRequest) {
 
   const code = params.get("code");
   if (!code) {
-    // e.g. user hit "Cancel" — Google returns ?error=access_denied.
     return NextResponse.redirect(optionsUrl("error=denied"));
   }
 
@@ -46,7 +41,6 @@ export async function GET(request: NextRequest) {
       courses?: Array<{ id: string; name?: string }>;
     };
 
-    // TODO: let user choose course — MVP grabs the first active course.
     const course = coursesData.courses?.[0];
     const courseName = course?.name ?? "Google Account";
     const courseId = course ? String(course.id) : "google_user";
@@ -62,8 +56,7 @@ export async function GET(request: NextRequest) {
         access_token: tokens.access_token,
         token_expires_at: tokenExpiresAt,
         is_connected: true,
-        // Google omits refresh_token on re-consent sometimes; keep the stored
-        // one instead of overwriting it with null.
+        // Google omits refresh_token on re-consent
         ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
       },
       { onConflict: "user_id,type" }
@@ -79,7 +72,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Successfully connected! Automatically log the user in.
     c.set("nexus_logged_in", "true", {
       path: "/",
       secure: process.env.NODE_ENV === "production",

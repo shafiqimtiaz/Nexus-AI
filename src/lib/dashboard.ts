@@ -12,9 +12,6 @@ export type DashboardEvent = {
   start_time: string;
   end_time: string | null;
   source_platform: string | null;
-  // Resolved platform type (e.g. "google_classroom", "discord") for display,
-  // derived from source_platform → platforms.type. Null when the event was
-  // created locally / has no connected platform.
   platform?: string | null;
 };
 
@@ -66,9 +63,6 @@ function truncate(text: string): string {
   return trimmed.length > SNIPPET_LEN ? `${trimmed.slice(0, SNIPPET_LEN).trimEnd()}…` : trimmed;
 }
 
-// Single aggregated read used by both the dashboard page (server component) and
-// GET /api/dashboard, so neither pays for an HTTP self-fetch. Read-only, so demo
-// users get the seeded data exactly like the owner.
 export async function getDashboardData(): Promise<DashboardData> {
   const db = createServerClient();
 
@@ -113,10 +107,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .limit(1)
       .maybeSingle(),
     db.from("announcements").select("id", { count: "exact", head: true }).eq("is_read", false),
-    db
-      .from("events")
-      .select("id", { count: "exact", head: true })
-      .eq("event_type", "assignment"),
+    db.from("events").select("id", { count: "exact", head: true }).eq("event_type", "assignment"),
     db
       .from("events")
       .select("id, title, description, event_type, start_time, end_time, source_platform")
@@ -137,9 +128,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     db.from("platforms").select("id, name, type"),
   ]);
 
-  // Map platform_id → { channel name, platform type } so each announcement can
-  // show which channel and platform it came from without a DB-level join
-  // (the mock client doesn't support nested selects).
+  // mock client doesn't support nested selects
   const platformById = new Map<string, { name: string | null; type: string | null }>(
     (platformsRes.data ?? []).map((p: any) => [p.id, { name: p.name, type: p.type }])
   );
@@ -148,10 +137,6 @@ export async function getDashboardData(): Promise<DashboardData> {
     ? Math.max(0, differenceInCalendarDays(new Date(nextExamRes.data.start_time), now))
     : null;
 
-  // Merge the nearest future exam into the upcoming list even when it falls
-  // outside the 7-day window, so the list stays consistent with the
-  // "Days to next exam" stat (which counts any future exam). Dedupe by id in
-  // case the exam is already within the window.
   const upcoming = (upcomingRes.data ?? []) as DashboardEvent[];
   const nextExam = (nextExamRes.data ?? null) as DashboardEvent | null;
   if (nextExam && !upcoming.some((e) => e.id === nextExam.id)) {

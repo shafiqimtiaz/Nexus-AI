@@ -1,14 +1,9 @@
 import "server-only";
 import { createServerClient } from "@/lib/supabase/server";
 
-// Google OAuth 2.0 authorization-code flow for connecting Google Classroom.
-// Server-only: reads client secret from env and touches token columns that must
-// never reach the browser.
-
 const AUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
-// Space-separated OAuth scopes: read-only Classroom + basic identity.
 const SCOPES = [
   "https://www.googleapis.com/auth/classroom.courses.readonly",
   "https://www.googleapis.com/auth/classroom.announcements.readonly",
@@ -19,11 +14,8 @@ const SCOPES = [
   "email",
 ].join(" ");
 
-// Shared between the initiation and callback routes for the CSRF state cookie.
 export const OAUTH_STATE_COOKIE = "google_oauth_state";
 
-// Refresh a little before the real expiry to avoid handing out a token that
-// dies mid-request.
 const EXPIRY_SKEW_MS = 60_000;
 
 export interface TokenResponse {
@@ -38,8 +30,6 @@ export interface RefreshResponse {
   expires_in: number;
 }
 
-// Build the authorization URL the owner is redirected to. `access_type=offline`
-// + `prompt=consent` force Google to return a refresh_token every time.
 export async function getAuthUrl(state: string, requestUrl: string): Promise<string> {
   const db = createServerClient();
   const { data } = await db.from("platforms").select().eq("type", "google_oauth").maybeSingle();
@@ -60,7 +50,6 @@ export async function getAuthUrl(state: string, requestUrl: string): Promise<str
   return `${AUTH_ENDPOINT}?${params.toString()}`;
 }
 
-// Exchange the authorization code for tokens.
 export async function exchangeCode(code: string, requestUrl: string): Promise<TokenResponse> {
   const db = createServerClient();
   const { data } = await db.from("platforms").select().eq("type", "google_oauth").maybeSingle();
@@ -91,8 +80,6 @@ export async function exchangeCode(code: string, requestUrl: string): Promise<To
   return (await res.json()) as TokenResponse;
 }
 
-// Exchange a stored refresh_token for a fresh access_token. Google usually does
-// NOT return a new refresh_token here — the caller keeps the existing one.
 export async function refreshAccessToken(refreshToken: string): Promise<RefreshResponse> {
   const db = createServerClient();
   const { data } = await db.from("platforms").select().eq("type", "google_oauth").maybeSingle();
@@ -120,9 +107,6 @@ export async function refreshAccessToken(refreshToken: string): Promise<RefreshR
   return (await res.json()) as RefreshResponse;
 }
 
-// Reusable entry point for later Classroom API calls (e.g. the MCP server).
-// Returns a currently-valid access token, refreshing and persisting it first if
-// the stored one is expired or within EXPIRY_SKEW_MS of expiring.
 export async function getValidClassroomToken(): Promise<string> {
   const db = createServerClient();
 
@@ -142,7 +126,6 @@ export async function getValidClassroomToken(): Promise<string> {
 
   const expiresAtMs = data.token_expires_at ? new Date(data.token_expires_at).getTime() : 0;
 
-  // Still comfortably valid — return the stored token as-is.
   if (expiresAtMs - Date.now() > EXPIRY_SKEW_MS) {
     return data.access_token;
   }
@@ -171,27 +154,20 @@ export async function getValidClassroomToken(): Promise<string> {
   return refreshed.access_token;
 }
 
-// Base URL for the connected user's primary calendar.
 const CALENDAR_EVENTS_URL = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
 
-// Calendar-synced events are tagged in events.source_external_id with this prefix
-// so reconcile/delete-detection only ever touch calendar rows — never Classroom
-// coursework, which shares the same source_platform.
 export const GCAL_PREFIX = "gcal:";
 
 export function gcalExternalId(googleId: string): string {
   return GCAL_PREFIX + googleId;
 }
 
-// Returns the raw Google event id if externalId is a calendar marker, else null.
 export function parseGcalId(externalId: string | null | undefined): string | null {
   return externalId && externalId.startsWith(GCAL_PREFIX)
     ? externalId.slice(GCAL_PREFIX.length)
     : null;
 }
 
-// The platforms row id for the Google connection — used as source_platform on
-// calendar-synced events. Null when Google was never connected.
 export async function getGooglePlatformId(): Promise<string | null> {
   const db = createServerClient();
   const { data } = await db
@@ -211,9 +187,6 @@ function eventTimes(startTime: string, endTime?: string) {
   };
 }
 
-// Create an event on the connected primary calendar. Returns the created Google
-// event id (persisted locally so the row can later be updated/deleted on
-// Google), or null if not connected / the API failed.
 export async function writeToGoogleCalendar(
   title: string,
   startTime: string,
@@ -245,13 +218,11 @@ export async function writeToGoogleCalendar(
     const created = (await response.json().catch(() => null)) as { id?: string } | null;
     return created?.id ?? null;
   } catch (error) {
-    // Fail silently if not connected or API error
     console.warn("Failed to write to Google Calendar (maybe not connected):", error);
     return null;
   }
 }
 
-// Patch an existing Google event. Only the fields passed are changed.
 export async function updateGoogleCalendarEvent(
   googleId: string,
   fields: { title?: string; startTime?: string; endTime?: string; description?: string }
@@ -290,7 +261,6 @@ export async function updateGoogleCalendarEvent(
   }
 }
 
-// Delete a Google event. 404/410 mean it's already gone — treated as success.
 export async function deleteGoogleCalendarEvent(googleId: string): Promise<void> {
   try {
     const accessToken = await getValidClassroomToken();
@@ -316,8 +286,6 @@ export interface GoogleCalendarEvent {
   endTime: string | null;
 }
 
-// List events on the primary calendar within [timeMin, timeMax]. singleEvents
-// expands recurring series into instances. Returns [] if not connected.
 export async function listGoogleCalendarEvents(
   timeMin: string,
   timeMax: string

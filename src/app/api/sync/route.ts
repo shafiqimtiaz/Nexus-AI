@@ -14,12 +14,6 @@ import {
   parseGcalId,
 } from "@/lib/auth/google-oauth";
 
-// POST /api/sync — pull announcements/assignments from every connected platform
-// into the local DB cache. Owner-only (it mutates the DB). Each platform is
-// guarded by a 15-minute staleness gate (bypass with ?force=1) and processed in
-// its own try/catch so one platform failing never aborts the others. Tokens are
-// never returned or logged.
-
 const STALE_MS = 15 * 60 * 1000;
 
 type SyncResult = {
@@ -31,8 +25,6 @@ type SyncResult = {
   authExpired?: boolean;
 };
 
-// A thrown fetcher error means the stored browser/user token was rejected.
-// Discord surfaces the HTTP status in the message; Slack surfaces its error code.
 function isAuthFailure(type: string, message: string): boolean {
   if (type === "discord") return /\((401|403)\)/.test(message);
   if (type === "slack")
@@ -49,8 +41,6 @@ interface PlatformRow {
   last_synced_at: string | null;
 }
 
-// One token can back several channels; they're stored comma-separated in
-// external_id.
 function parseChannelIds(raw: string | null): string[] {
   return (raw ?? "")
     .split(",")
@@ -58,15 +48,11 @@ function parseChannelIds(raw: string | null): string[] {
     .filter(Boolean);
 }
 
-// First ~60 chars of the announcement text as a title, or null when empty.
-// Used at ingestion; the concierge pass later replaces this with an AI title.
 function deriveTitle(text: string): string | null {
   const trimmed = text.trim();
   return trimmed ? trimmed.slice(0, 60) : null;
 }
 
-// Sanitize an AI-generated title: strip markdown/HTML, unwrap quotes, collapse
-// whitespace, and cap length. Returns null if nothing usable remains.
 function sanitizeTitle(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const cleaned = raw
@@ -78,8 +64,6 @@ function sanitizeTitle(raw: unknown): string | null {
   return cleaned ? cleaned.slice(0, 80) : null;
 }
 
-// Sanitize the AI-generated announcement summary: strip HTML/markdown, collapse
-// whitespace, and cap length. Returns null if nothing usable remains.
 function sanitizeSummary(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const cleaned = raw
@@ -91,22 +75,15 @@ function sanitizeSummary(raw: unknown): string | null {
   return cleaned ? cleaned.slice(0, 500) : null;
 }
 
-// Normalize an event title for de-duplication: lowercase and drop everything
-// after a colon / em-dash / en-dash (the "subtitle"), so "Quiz 2" and
-// "Quiz 2: Clipping Algorithms" collapse to the same key. Mirrors the
-// events_auto_dedup_idx expression in migration 011.
 function normalizeEventTitle(title: string | null): string {
   if (!title) return "";
   return title
-      .replace(/[:–—].*$/, "")
+    .replace(/[:–—].*$/, "")
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
 }
 
-// Google Calendar has no exam/quiz/assignment concept, so imported events would
-// all default to "other" and never surface in the dashboard's typed widgets.
-// Best-effort classify from the title keywords; fall back to "other".
 function classifyEventType(title: string | null): "exam" | "quiz" | "assignment" | "other" {
   const t = (title ?? "").toLowerCase();
   if (/\b(exam|midterm|final)\b/.test(t)) return "exam";
@@ -115,16 +92,10 @@ function classifyEventType(title: string | null): "exam" | "quiz" | "assignment"
   return "other";
 }
 
-// Strip platform mentions only (Discord <@&...>, Slack <@U...>).
-// Leave HTML, emails, code, etc. intact.
 function sanitizeContent(raw: string): string {
   return raw.replace(/<@[!&]?\d+>/g, "").trim();
 }
 
-// The concierge only schedules *upcoming* events. Reject dates that are missing,
-// unparseable, or already in the past so a past announcement (e.g. an old exam
-// script viewing) can never be stored as a future event and silently vanish
-// from the dashboard's `>= now` filters.
 function isFutureDate(value: unknown): boolean {
   if (typeof value !== "string") return false;
   const t = new Date(value).getTime();
@@ -132,10 +103,6 @@ function isFutureDate(value: unknown): boolean {
   return t > Date.now();
 }
 
-// Upsert announcements. New rows are inserted (with a derived title); existing
-// rows have their mutable platform fields (content, author, source_url,
-// announced_at) refreshed so edited/updated posts stay accurate — but the AI
-// title and AI summary are preserved if the concierge already set them.
 async function upsertAnnouncements(
   db: ReturnType<typeof createServerClient>,
   rows: Array<{
@@ -150,9 +117,6 @@ async function upsertAnnouncements(
 ): Promise<number> {
   if (rows.length === 0) return 0;
 
-  // Discover which external_ids already exist for this platform so we can split
-  // into inserts vs. in-place updates (Supabase upsert would clobber the
-  // AI-set title/summary with the raw derived title).
   const platformId = rows[0].platform_id;
   const { data: existingRows } = await db
     .from("announcements")
@@ -170,7 +134,6 @@ async function upsertAnnouncements(
     if (!existing) {
       toInsert.push(row);
     } else {
-      // Preserve AI-generated values; only refresh what the platform can change.
       toUpdate.push({
         id: existing.id,
         content: row.content,
@@ -194,10 +157,6 @@ async function upsertAnnouncements(
   return rows.length;
 }
 
-// Two-way calendar sync for the Google connection. Returns the number of
-// events touched (imported/updated/pushed). Approach A: list a bounded window,
-// upsert Google→local (Google wins on title/desc/times, local event_type kept),
-// delete-detect within the window, then backfill unmapped local events up.
 const IMPORT_WINDOW_PAST_MS = 30 * 24 * 60 * 60 * 1000;
 const IMPORT_WINDOW_FUTURE_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -215,8 +174,6 @@ async function syncGoogleCalendar(
   const googleIds = new Set(googleEvents.map((e) => e.id));
   let touched = 0;
 
-  // Existing calendar-synced rows for this platform (gcal: marker only, so
-  // Classroom coursework rows are never reconciled or deleted here).
   const { data: platformRows } = await db
     .from("events")
     .select("id, source_external_id, event_type, start_time")
@@ -226,15 +183,7 @@ async function syncGoogleCalendar(
     localGcal.map((r: any) => [parseGcalId(r.source_external_id) as string, r])
   );
 
-  // Content-dedup guard. Google Calendar can itself hold several events with the
-  // same title and time (legacy junk from the old concierge, or "Quiz 2" vs
-  // "Quiz 2: Clipping Algorithms"). Mirroring by id would recreate every one of
-  // them locally. Collapse to a single row by skipping the import of any Google
-  // event whose (normalized title, start_time, event_type) already exists
-  // locally. Mirrors migration 011's events_auto_dedup_idx key.
-  const { data: contentRows } = await db
-    .from("events")
-    .select("title, event_type, start_time");
+  const { data: contentRows } = await db.from("events").select("title, event_type, start_time");
   const contentKey = (
     title: string | null,
     eventType: string | null,
@@ -247,8 +196,6 @@ async function syncGoogleCalendar(
     (contentRows ?? []).map((r: any) => contentKey(r.title, r.event_type, r.start_time))
   );
 
-  // Google → local. Update existing by id (preserve event_type). Insert new
-  // ones classified by title, unless the same title/time already exists.
   for (const ev of googleEvents) {
     if (!ev.startTime) continue;
     const existing = localByGid.get(ev.id);
@@ -264,7 +211,7 @@ async function syncGoogleCalendar(
         .eq("id", existing.id);
     } else {
       const key = contentKey(ev.summary, classifyEventType(ev.summary), ev.startTime);
-      if (seenContent.has(key)) continue; // redundant Google event — don't duplicate
+      if (seenContent.has(key)) continue;
       await db.from("events").insert({
         title: ev.summary,
         description: ev.description,
@@ -280,9 +227,6 @@ async function syncGoogleCalendar(
     touched++;
   }
 
-  // Delete-detection: a local gcal row inside the window but absent from Google
-  // was deleted on Google → remove locally. Rows outside the window are skipped
-  // (we can't judge them from this fetch).
   for (const r of localGcal) {
     const startMs = r.start_time ? new Date(r.start_time).getTime() : NaN;
     if (Number.isNaN(startMs) || startMs < timeMinMs || startMs > timeMaxMs) continue;
@@ -293,8 +237,6 @@ async function syncGoogleCalendar(
     }
   }
 
-  // Backfill: local events never pushed to Google (manual/AI events created
-  // while disconnected) have no source_external_id → push them up and map them.
   const { data: allEvents } = await db
     .from("events")
     .select("id, title, start_time, end_time, description, source_external_id");
@@ -322,8 +264,6 @@ async function syncClassroom(
   db: ReturnType<typeof createServerClient>,
   platform: PlatformRow
 ): Promise<{ announcements: number; events: number }> {
-  // Calendar sync runs for any Google connection, even one without a Classroom
-  // course (external_id === "google_user").
   const calendarEvents = await syncGoogleCalendar(db, platform.id);
 
   if (platform.external_id === "google_user") {
@@ -344,7 +284,6 @@ async function syncClassroom(
   );
 
   const assignments = await listAssignments();
-  // Only due-dated assignments become calendar events.
   const eventRows = assignments
     .filter((w) => w.dueDate)
     .map((w) => ({
@@ -359,7 +298,6 @@ async function syncClassroom(
 
   let eventCount = 0;
   if (eventRows.length > 0) {
-    // ignoreDuplicates omitted (default false) so re-syncing updates due dates.
     const { error } = await db
       .from("events")
       .upsert(eventRows, { onConflict: "source_platform,source_external_id" });
@@ -457,7 +395,6 @@ export async function POST(request: NextRequest) {
   const staleCutoff = Date.now() - STALE_MS;
 
   for (const platform of platforms) {
-    // Staleness gate: skip platforms synced within the last 15 minutes.
     if (!force && platform.last_synced_at) {
       const lastMs = new Date(platform.last_synced_at).getTime();
       if (!Number.isNaN(lastMs) && lastMs > staleCutoff) {
@@ -480,9 +417,6 @@ export async function POST(request: NextRequest) {
       } else if (platform.type === "google_classroom") {
         counts = await syncClassroom(db, platform);
       } else {
-        // gemini is an API-key holder, not a syncable source. Running the
-        // classroom/calendar sync for it mirrored every Google event a second
-        // time under the gemini platform id — the duplicate-event bug.
         continue;
       }
 
@@ -493,12 +427,8 @@ export async function POST(request: NextRequest) {
 
       synced.push({ type: platform.type, ...counts });
     } catch (err) {
-      // One platform failing must not abort the rest. Never surface the token.
       const message = err instanceof Error ? err.message : "Sync failed";
       const authExpired = isAuthFailure(platform.type, message);
-      // A rejected token won't fix itself — flip is_connected off so the UI shows
-      // "Not connected", re-exposes the token inputs, and stops re-syncing a dead
-      // token until the user reconnects.
       if (authExpired) {
         await db.from("platforms").update({ is_connected: false }).eq("id", platform.id);
       }
@@ -600,10 +530,6 @@ Rules:
               await db.from("announcements").update(patch).eq("id", ann.id);
             }
 
-            // A single announcement frequently bundles several actionable items
-            // (e.g. a quiz AND an assignment deadline, plus several links).
-            // Normalize to arrays, and still accept the legacy singular shape so
-            // older cached model responses keep working.
             const rawEvents: any[] = Array.isArray(result.events)
               ? result.events
               : result.event
@@ -616,11 +542,6 @@ Rules:
                 : [];
             const rawKeyDates: any[] = Array.isArray(result.key_dates) ? result.key_dates : [];
 
-            // Schedule well-formed events. Exams/quizzes/study blocks are only
-            // useful when upcoming, but assignment deadlines are tracked as
-            // academic workload and must be captured regardless of whether the
-            // due date is in the past or future — so assignment-typed events
-            // bypass the future-only gate (there is intentionally NO date cap).
             const events = rawEvents
               .filter((e) => {
                 if (!e || typeof e.start_time !== "string") return false;
@@ -631,31 +552,23 @@ Rules:
                 const endRaw = typeof e.end_time === "string" ? e.end_time.trim() : "";
                 const endMs = endRaw ? new Date(endRaw).getTime() : NaN;
                 const startMs = new Date(e.start_time).getTime();
-                const end_time =
-                  !Number.isNaN(endMs) && endMs > startMs ? endRaw : null;
+                const end_time = !Number.isNaN(endMs) && endMs > startMs ? endRaw : null;
                 return { ...e, end_time };
               });
 
-              const EVENT_COLS_FULL = "id, source_platform, source_external_id, title";
-              const scheduled: string[] = [];
+            const EVENT_COLS_FULL = "id, source_platform, source_external_id, title";
+            const scheduled: string[] = [];
 
             for (let i = 0; i < events.length; i++) {
               const ev = events[i];
               const eventTitle = ev.title;
               const eventStart = ev.start_time;
-              // Rescue misclassifications: if the AI shrugged with "other" but
-              // the title clearly names a quiz/exam/assignment, keep the keyword.
               const eventType =
                 ev.event_type && ev.event_type !== "other"
                   ? ev.event_type
                   : classifyEventType(eventTitle);
-              // Index the auto-id so multiple events from the SAME announcement
-              // don't collide on the (source_platform, source_external_id) key.
               const autoExternalId = `auto-${ann.id}-${i}`;
 
-              // 1. Look for an event we already created for this slot (preferred),
-              //    then fall back to a content match (title + start) so a re-sync
-              //    or a legacy `auto-<id>` row is never duplicated.
               const { data: existingByAuto } = await db
                 .from("events")
                 .select(EVENT_COLS_FULL)
@@ -670,23 +583,12 @@ Rules:
                     .select(EVENT_COLS_FULL)
                     .eq("start_time", eventStart)
                     .eq("event_type", eventType);
-              // Match on normalized title so "Quiz 2" and "Quiz 2: Clipping
-              // Algorithms" at the same time resolve to the same event.
               const existingByContent = (contentCandidates ?? []).find(
                 (c: any) => normalizeEventTitle(c.title) === normalizeEventTitle(eventTitle)
               );
 
               const existing = existingByAuto ?? existingByContent;
 
-              // 2. Upsert the event row. Authoritative de-duplication is the
-              //    partial unique index events_auto_dedup_idx
-              //    (description, start_time, event_type WHERE is_auto_detected);
-              //    the (source_platform, source_external_id) key keeps
-              //    per-announcement rows idempotent. The AI varies TITLES for the
-              //    same event, so we match on content, not title. A concurrent
-              //    sync that races past this check hits the unique index on
-              //    insert — the error is swallowed below and the row is skipped,
-              //    so duplicates can never persist.
               let isNew = false;
               if (existing) {
                 await db
@@ -712,14 +614,10 @@ Rules:
                   })
                   .select("id")
                   .single();
-                // A concurrent sync won the race for this slot — skip it, the
-                // other call recorded it.
                 if (evError || !inserted) continue;
                 isNew = true;
               }
 
-              // 3. Push to Google only for newly created rows. Existing rows were
-              //    pushed on their first sync; re-pushing would duplicate them.
               if (isNew) {
                 try {
                   await writeToGoogleCalendar(
@@ -728,18 +626,13 @@ Rules:
                     ev.end_time ?? undefined,
                     ev.description
                   );
-                } catch {
-                  // Calendar failures must not block the agent action log.
-                }
+                } catch {}
                 scheduled.push(
                   `${eventType} "${eventTitle}" on ${new Date(eventStart).toLocaleDateString()}`
                 );
               }
             }
 
-            // 4. Log ONE aggregated calendar action per announcement. The partial
-            //    unique index on (user_id, source_id, action_type) permits only a
-            //    single 'calendar' row per announcement anyway.
             const keyDatesText =
               rawKeyDates.length > 0
                 ? ` Notable dates: ${rawKeyDates.map((k) => `${k.label} (${k.date})`).join("; ")}.`
@@ -755,12 +648,9 @@ Rules:
                   action_type: "calendar",
                   source_id: ann.id,
                 });
-              } catch {
-                // Duplicate — already logged.
-              }
+              } catch {}
             }
 
-            // Resources: save every distinct link, deduped globally by URL.
             let savedResource = false;
             for (const res of rawResources) {
               if (!res || typeof res.url !== "string" || !res.url) continue;
@@ -787,9 +677,7 @@ Rules:
                   action_type: "resource",
                   source_id: ann.id,
                 });
-              } catch {
-                // Duplicate — already logged.
-              }
+              } catch {}
             }
 
             if (events.length === 0 && rawResources.length === 0 && rawKeyDates.length === 0) {
@@ -804,11 +692,6 @@ Rules:
         }
       }
 
-      // Title + summary backfill: give every existing announcement a clean AI
-      // title and an easy-to-read summary. Idempotent — a row is only (re)titled
-      // while its title is still the raw 60-char ingestion prefix (or null), and
-      // only (re)summarized while ai_summary is still missing, so later syncs
-      // skip it and burn no AI calls.
       const { data: untitled } = await db
         .from("announcements")
         .select("id, title, content, ai_summary");

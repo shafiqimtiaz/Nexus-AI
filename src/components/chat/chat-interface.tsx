@@ -25,16 +25,8 @@ function nextId(): string {
   return `m${idCounter}`;
 }
 
-// Demo users bring their own Gemini key. It lives only in this browser and is
-// sent with each chat request via the x-gemini-key header — never persisted
-// server-side.
 const DEMO_KEY_STORAGE = "nexus_demo_gemini_key";
 
-// Parse the AI SDK UI message stream (SSE: `data: {json}\n\n`) and drive the
-// passed callbacks. We split the byte stream on blank lines, strip the `data: `
-// prefix, JSON.parse each event, and dispatch by its `type` field. The exact
-// type strings match ai@7's UIMessageChunk union (text-delta, tool-input-*,
-// tool-output-*, error).
 async function readUiStream(
   body: ReadableStream<Uint8Array>,
   handlers: {
@@ -51,7 +43,6 @@ async function readUiStream(
   let buffer = "";
 
   const dispatch = (raw: string) => {
-    // An SSE event block: keep only `data:` payload lines, joined.
     const payload = raw
       .split("\n")
       .filter((line) => line.startsWith("data:"))
@@ -120,7 +111,6 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Demo mode reads its key from localStorage — no server round trip.
     if (isDemo) {
       const saved = localStorage.getItem(DEMO_KEY_STORAGE) ?? "";
       setDemoKey(saved);
@@ -155,7 +145,6 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
     setHasKey(false);
   };
 
-  // Mutate the last (assistant) message in place via functional update.
   const updateAssistant = (mutate: (m: ChatMessage) => void) => {
     setMessages((prev) => {
       if (prev.length === 0) return prev;

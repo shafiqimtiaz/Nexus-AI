@@ -10,8 +10,6 @@ import {
   parseGcalId,
 } from "@/lib/auth/google-oauth";
 
-// Full event row exposed to the calendar. Nothing sensitive lives on the events
-// table, so every column is safe to return.
 const SELECT_COLUMNS =
   "id, title, description, event_type, start_time, end_time, source_platform, source_external_id, is_auto_detected, created_at";
 
@@ -21,9 +19,6 @@ function isEventType(value: unknown): value is EventType {
   return typeof value === "string" && (EVENT_TYPES as readonly string[]).includes(value);
 }
 
-// GET /api/events — both roles. With ?from=ISO&to=ISO returns events whose
-// start_time falls in that window (the visible month grid). Without a range,
-// returns recent + upcoming events with a sane cap for the "Upcoming" list.
 export async function GET(request: NextRequest) {
   const db = createServerClient();
   const from = request.nextUrl.searchParams.get("from");
@@ -47,7 +42,6 @@ export async function GET(request: NextRequest) {
   return Response.json({ events: data ?? [] });
 }
 
-// POST /api/events — both roles. Creates a manual event (demo writes to mock DB).
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (
@@ -84,8 +78,6 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  // Push to Google and store the returned id so later edits/deletes can sync.
-  // Awaited (not fire-and-forget) because we need the id to build the mapping.
   const googleId = await writeToGoogleCalendar(
     body.title.trim(),
     body.start_time,
@@ -106,7 +98,6 @@ export async function POST(request: NextRequest) {
   return Response.json({ event: data });
 }
 
-// PATCH /api/events — both roles. Updates the given fields on one event by id.
 export async function PATCH(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body || typeof body.id !== "string") {
@@ -149,8 +140,6 @@ export async function PATCH(request: NextRequest) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  // Propagate the edit to Google. If the row already maps to a Google event,
-  // patch it; otherwise create one now and store the mapping.
   const gid = parseGcalId(data.source_external_id);
   if (gid) {
     await updateGoogleCalendarEvent(gid, {
@@ -182,7 +171,6 @@ export async function PATCH(request: NextRequest) {
   return Response.json({ event: data });
 }
 
-// DELETE /api/events — both roles. Accepts ?id= or a JSON body { id }.
 export async function DELETE(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const id = body?.id ?? request.nextUrl.searchParams.get("id");
@@ -192,7 +180,6 @@ export async function DELETE(request: NextRequest) {
 
   const db = createServerClient();
 
-  // Read the mapping before deleting so we can remove the Google counterpart.
   const { data: row } = await db
     .from("events")
     .select("source_external_id")

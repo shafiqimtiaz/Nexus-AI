@@ -4,8 +4,6 @@ import { BASE_SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
 
 const AI_RULES_KEY = "ai_rules";
 
-// GET /api/settings — returns the owner's custom AI rules plus the locked base
-// system prompt so the Options page can show what the agent already follows.
 export async function GET() {
   const db = createServerClient();
   const { data } = await db
@@ -20,9 +18,7 @@ export async function GET() {
   });
 }
 
-// POST /api/settings — both roles. Saves the custom AI rules (append-only; the
-// base prompt is never editable). Select-then-update/insert instead of upsert so
-// it works against both the real client and the mock DB.
+// select-then-update/insert instead of upsert for mock DB compatibility
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const value = typeof body?.aiRules === "string" ? body.aiRules : "";

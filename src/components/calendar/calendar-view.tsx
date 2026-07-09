@@ -38,8 +38,6 @@ export type CalendarEvent = {
   created_at: string;
 };
 
-// Compact pill colors, matching the dashboard's EventBadge palette so a type
-// reads the same everywhere.
 const PILL_CLASS: Record<EventType, string> = {
   exam: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
   quiz: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
@@ -72,12 +70,10 @@ type DialogState =
   | null;
 
 export function CalendarView({ role }: { role: Role }) {
-  // Demo is now editable too (its writes are isolated to the mock DB).
   const canEdit = role === "owner" || role === "demo";
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [dialog, setDialog] = useState<DialogState>(null);
 
-  // Always render six weeks (42 cells) starting on the Sunday on/before the 1st.
   const gridStart = useMemo(() => startOfWeek(startOfMonth(currentMonth)), [currentMonth]);
   const days = useMemo(
     () => eachDayOfInterval({ start: gridStart, end: addDays(gridStart, 41) }),
@@ -98,7 +94,6 @@ export function CalendarView({ role }: { role: Role }) {
     queryFn: fetchUpcoming,
   });
 
-  // Group visible events by local day key.
   const eventsByDay = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
     for (const ev of events) {

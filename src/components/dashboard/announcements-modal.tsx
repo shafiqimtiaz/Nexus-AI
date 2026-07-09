@@ -122,7 +122,6 @@ type AnnouncementsApiResponse = {
   total?: number;
 };
 
-// Cache accumulated results so reopening the modal is instant and resumes
 let cachedTotal = 0;
 let cachedPage = -1; // highest page loaded, -1 = nothing loaded yet
 let cachedItems: DashboardAnnouncement[] = [];
@@ -166,8 +165,6 @@ export function AnnouncementsModal({
       cachedPage = nextPage;
       setItems(cachedItems);
       setTotal(cachedTotal);
-    } catch {
-      // keep whatever was already loaded
     } finally {
       isFetchingRef.current = false;
       setLoading(false);
