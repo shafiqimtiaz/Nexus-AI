@@ -304,7 +304,11 @@ async function syncSlack(
         fetchSlackMessages(platform.access_token!, platform.refresh_token!, channelId)
       )
     )
-  ).flat();
+  ).flat().filter((m) => {
+    if (m.subtype === "channel_join" || m.subtype === "channel_leave") return false;
+    if (/has (joined|left) the channel/i.test(m.content)) return false;
+    return true;
+  });
 
   const annCount = await upsertAnnouncements(
     db,
