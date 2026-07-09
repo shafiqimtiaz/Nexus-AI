@@ -24,13 +24,7 @@ export function formatPlatform(type: string): string {
   return PLATFORM_LABELS[type] ?? type;
 }
 
-export function PlatformPill({
-  platform,
-  className,
-}: {
-  platform: string;
-  className?: string;
-}) {
+export function PlatformPill({ platform, className }: { platform: string; className?: string }) {
   return (
     <span
       className={cn(

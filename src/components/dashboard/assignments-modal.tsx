@@ -4,12 +4,7 @@ import { useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, ClipboardListIcon } from "@hugeicons/core-free-icons";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import { cn } from "@/lib/utils";
 import type { DashboardEvent } from "@/lib/dashboard";

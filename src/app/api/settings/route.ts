@@ -35,10 +35,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existing) {
-    const { error } = await db
-      .from("app_settings")
-      .update({ value })
-      .eq("key", AI_RULES_KEY);
+    const { error } = await db.from("app_settings").update({ value }).eq("key", AI_RULES_KEY);
     if (error) return Response.json({ error: error.message }, { status: 500 });
   } else {
     const { error } = await db.from("app_settings").insert({ key: AI_RULES_KEY, value });

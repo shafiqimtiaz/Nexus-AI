@@ -206,8 +206,7 @@ function eventTimes(startTime: string, endTime?: string) {
   return {
     start: { dateTime: startTime },
     end: {
-      dateTime:
-        endTime || new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString(),
+      dateTime: endTime || new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString(),
     },
   };
 }

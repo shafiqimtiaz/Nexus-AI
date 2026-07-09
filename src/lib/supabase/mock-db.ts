@@ -169,7 +169,8 @@ function getInitialData(): DbSchema {
       {
         id: "act-2",
         title: "Autoscheduled Midterm",
-        description: "Ingested CS 101 Midterm announcement and added study sessions on Google Calendar.",
+        description:
+          "Ingested CS 101 Midterm announcement and added study sessions on Google Calendar.",
         action_type: "calendar",
         source_id: "demo-ann-1",
         created_at: new Date(Date.now() - 3.8 * 60 * 60 * 1000).toISOString(),

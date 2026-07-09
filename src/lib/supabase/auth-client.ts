@@ -44,9 +44,7 @@ export async function createAuthClient() {
         const loggedIn = cookieStore.get("nexus_logged_in")?.value === "true";
         return {
           data: {
-            session: loggedIn
-              ? { user: { email: "owner@nexus.edu", id: "owner-user-id" } }
-              : null,
+            session: loggedIn ? { user: { email: "owner@nexus.edu", id: "owner-user-id" } } : null,
           },
           error: null,
         };

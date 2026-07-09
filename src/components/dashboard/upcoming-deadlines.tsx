@@ -60,10 +60,7 @@ export function UpcomingDeadlines({
                     </div>
                   </div>
                   <div
-                    className={cn(
-                      "shrink-0 text-right text-sm font-medium",
-                      urgencyClass(days)
-                    )}
+                    className={cn("shrink-0 text-right text-sm font-medium", urgencyClass(days))}
                   >
                     {formatDistanceToNow(due, { addSuffix: true })}
                   </div>

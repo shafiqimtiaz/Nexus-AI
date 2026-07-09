@@ -10,7 +10,10 @@ export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
 
   const page = Math.max(0, parseInt(sp.get("page") ?? "0", 10) || 0);
-  const pageSize = Math.max(1, Math.min(50, parseInt(sp.get("pageSize") ?? String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE));
+  const pageSize = Math.max(
+    1,
+    Math.min(50, parseInt(sp.get("pageSize") ?? String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE)
+  );
   const platform = sp.get("platform")?.trim() || null;
   const unreadOnly = sp.get("unreadOnly") === "true";
 
@@ -72,9 +75,10 @@ export async function GET(request: NextRequest) {
 
   // Map platform_id → platform name/type
   const allPlatformIds = [...new Set(paged.map((a: any) => a.platform_id).filter(Boolean))];
-  const { data: platformData } = allPlatformIds.length > 0
-    ? await db.from("platforms").select("id, name, type").in("id", allPlatformIds)
-    : { data: [] };
+  const { data: platformData } =
+    allPlatformIds.length > 0
+      ? await db.from("platforms").select("id, name, type").in("id", allPlatformIds)
+      : { data: [] };
   const platformMap = new Map<string, { name: string | null; type: string | null }>(
     (platformData ?? []).map((p: any) => [p.id, { name: p.name, type: p.type }])
   );

@@ -97,9 +97,7 @@ export function Sidebar() {
               )}
             >
               <HugeiconsIcon icon={icon} className="h-4 w-4 shrink-0" />
-              {!collapsed && (
-                <span className="whitespace-nowrap overflow-hidden">{label}</span>
-              )}
+              {!collapsed && <span className="whitespace-nowrap overflow-hidden">{label}</span>}
             </Link>
           );
         })}

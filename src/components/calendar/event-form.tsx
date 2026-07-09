@@ -172,7 +172,10 @@ export function EventForm({
               value={eventType}
               disabled={busy}
               onChange={(e) => setEventType(e.target.value as EventType)}
-              className={cn(inputClass, "bg-background text-foreground [&>option]:bg-background [&>option]:text-foreground")}
+              className={cn(
+                inputClass,
+                "bg-background text-foreground [&>option]:bg-background [&>option]:text-foreground"
+              )}
             >
               {TYPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -243,7 +246,9 @@ export function EventForm({
               Cancel
             </Button>
             <Button disabled={busy || !canSave} onClick={() => save.mutate()}>
-              {save.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+              {save.isPending && (
+                <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+              )}
               {isEdit ? "Save" : "Create"}
             </Button>
           </div>

@@ -96,7 +96,7 @@ export function getLocalTools(): Record<string, Tool> {
           const { source_platform, ...rest } = e;
           return {
             ...rest,
-            platform: source_platform ? platformById.get(source_platform) ?? null : null,
+            platform: source_platform ? (platformById.get(source_platform) ?? null) : null,
           };
         });
 
@@ -386,7 +386,7 @@ export function getLocalTools(): Record<string, Tool> {
           const { platform_id, ...rest } = a;
           return {
             ...rest,
-            platform: platform_id ? platformById.get(platform_id) ?? null : null,
+            platform: platform_id ? (platformById.get(platform_id) ?? null) : null,
           };
         });
 

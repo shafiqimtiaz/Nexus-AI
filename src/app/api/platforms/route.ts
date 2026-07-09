@@ -26,7 +26,10 @@ function parseChannelIds(raw: string | undefined): string[] {
 
 function formatChannelName(names: string[]): string | undefined {
   if (!names.length) return undefined;
-  const head = names.slice(0, 2).map((n) => `#${n}`).join(", ");
+  const head = names
+    .slice(0, 2)
+    .map((n) => `#${n}`)
+    .join(", ");
   return names.length > 2 ? `${head} +${names.length - 2}` : head;
 }
 
@@ -46,9 +49,7 @@ export async function GET() {
     hasGlobalGoogleOauth: !!(
       process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET
     ),
-    hasGlobalGeminiKey: !!(
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY
-    ),
+    hasGlobalGeminiKey: !!(process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY),
   });
 }
 
@@ -109,7 +110,10 @@ export async function POST(request: NextRequest) {
     const channelIds = parseChannelIds(externalId);
     if (!channelIds.length || !accessToken || !refreshToken) {
       return Response.json(
-        { error: "At least one Slack channel ID, a token (xoxc-...) and a d cookie (xoxd-...) are required." },
+        {
+          error:
+            "At least one Slack channel ID, a token (xoxc-...) and a d cookie (xoxd-...) are required.",
+        },
         { status: 400 }
       );
     }
@@ -117,9 +121,12 @@ export async function POST(request: NextRequest) {
     const names: string[] = [];
     for (const channelId of channelIds) {
       const params = new URLSearchParams({ channel: channelId });
-      const slackRes = await fetch(`https://slack.com/api/conversations.info?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${accessToken}`, Cookie: `d=${refreshToken}` },
-      }).catch(() => null);
+      const slackRes = await fetch(
+        `https://slack.com/api/conversations.info?${params.toString()}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}`, Cookie: `d=${refreshToken}` },
+        }
+      ).catch(() => null);
 
       if (!slackRes || !slackRes.ok) {
         return Response.json(

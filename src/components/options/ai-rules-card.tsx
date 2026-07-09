@@ -5,13 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Loading03Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 type SettingsResponse = { aiRules: string; basePrompt: string };
@@ -106,11 +100,10 @@ export function AiRulesCard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            disabled={isLoading || save.isPending || !dirty}
-            onClick={() => save.mutate()}
-          >
-            {save.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+          <Button disabled={isLoading || save.isPending || !dirty} onClick={() => save.mutate()}>
+            {save.isPending && (
+              <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+            )}
             Save rules
           </Button>
           {rules.trim() && !dirty && !save.isPending && (

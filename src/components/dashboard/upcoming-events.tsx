@@ -5,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import type { DashboardEvent } from "@/lib/dashboard";
 
-export function UpcomingEvents({ events, className }: { events: DashboardEvent[]; className?: string }) {
+export function UpcomingEvents({
+  events,
+  className,
+}: {
+  events: DashboardEvent[];
+  className?: string;
+}) {
   return (
     <Card className={className}>
       <CardHeader>

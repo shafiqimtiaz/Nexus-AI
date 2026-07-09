@@ -79,7 +79,11 @@ export function PlatformCard({
   role: Role;
 }) {
   const icon =
-    type === "google_classroom" ? Mortarboard02Icon : type === "gemini" ? SparklesIcon : Message01Icon;
+    type === "google_classroom"
+      ? Mortarboard02Icon
+      : type === "gemini"
+        ? SparklesIcon
+        : Message01Icon;
   const queryClient = useQueryClient();
   const isDemo = role === "demo";
 
@@ -96,12 +100,17 @@ export function PlatformCard({
   const updateChannel = (i: number, v: string) =>
     setChannelIds((prev) => prev.map((c, idx) => (idx === i ? v : c)));
   const addChannel = () => setChannelIds((prev) => [...prev, ""]);
-  const removeChannel = (i: number) =>
-    setChannelIds((prev) => prev.filter((_, idx) => idx !== i));
-  const joinedChannels = channelIds.map((c) => c.trim()).filter(Boolean).join(",");
+  const removeChannel = (i: number) => setChannelIds((prev) => prev.filter((_, idx) => idx !== i));
+  const joinedChannels = channelIds
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .join(",");
 
   const openManage = (externalId: string | null) => {
-    const current = (externalId ?? "").split(",").map((c) => c.trim()).filter(Boolean);
+    const current = (externalId ?? "")
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean);
     setChannelIds(current.length ? current : [""]);
     setBotToken("");
     setSlackCookie("");
@@ -326,11 +335,22 @@ export function PlatformCard({
                           : "http://localhost:3000/api/auth/google/callback"}
                       </code>
                       <div className="mt-3 text-[10px] text-muted-foreground space-y-1.5 border-t pt-2 border-border/50">
-                        <p className="font-medium text-foreground text-xs">How to configure Google Classroom:</p>
+                        <p className="font-medium text-foreground text-xs">
+                          How to configure Google Classroom:
+                        </p>
                         <ul className="list-disc pl-4 space-y-1">
-                          <li>Go to Google Cloud Console, create a project, and enable the Google Classroom API.</li>
-                          <li>Configure your OAuth consent screen and add the Redirect URI above to your Authorized Redirect URIs.</li>
-                          <li>Create OAuth 2.0 Client ID credentials, then paste the Client ID and Secret here.</li>
+                          <li>
+                            Go to Google Cloud Console, create a project, and enable the Google
+                            Classroom API.
+                          </li>
+                          <li>
+                            Configure your OAuth consent screen and add the Redirect URI above to
+                            your Authorized Redirect URIs.
+                          </li>
+                          <li>
+                            Create OAuth 2.0 Client ID credentials, then paste the Client ID and
+                            Secret here.
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -351,7 +371,9 @@ export function PlatformCard({
                   disabled={isDemo || disconnect.isPending}
                   onClick={() => disconnect.mutate()}
                 >
-                  {disconnect.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+                  {disconnect.isPending && (
+                    <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                  )}
                   Disconnect
                 </Button>
               ) : (
@@ -359,7 +381,9 @@ export function PlatformCard({
                   disabled={isDemo || connectGoogleOauth.isPending}
                   onClick={() => connectGoogleOauth.mutate()}
                 >
-                  {connectGoogleOauth.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+                  {connectGoogleOauth.isPending && (
+                    <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                  )}
                   Connect Google Classroom
                 </Button>
               )}
@@ -412,8 +436,8 @@ export function PlatformCard({
                         htmlFor="slack-cookie"
                         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
                       >
-                        <HugeiconsIcon icon={Key01Icon} className="h-3.5 w-3.5" />
-                        d cookie (xoxd-...)
+                        <HugeiconsIcon icon={Key01Icon} className="h-3.5 w-3.5" />d cookie
+                        (xoxd-...)
                       </label>
                       <Input
                         id="slack-cookie"
@@ -491,10 +515,14 @@ export function PlatformCard({
                     <p className="font-medium text-foreground text-xs">How to configure Discord:</p>
                     <ul className="list-disc pl-4 space-y-1">
                       <li>
-                        <strong>User token:</strong> Open Discord in your web browser, press F12, inspect any API request under the Network tab, and copy the <code>authorization</code> header value. <em>Keep this token private!</em>
+                        <strong>User token:</strong> Open Discord in your web browser, press F12,
+                        inspect any API request under the Network tab, and copy the{" "}
+                        <code>authorization</code> header value. <em>Keep this token private!</em>
                       </li>
                       <li>
-                        <strong>Channel ID:</strong> Enable Developer Mode in Discord Settings &gt; Advanced, right-click the channel, and choose <strong>Copy Channel ID</strong>.
+                        <strong>Channel ID:</strong> Enable Developer Mode in Discord Settings &gt;
+                        Advanced, right-click the channel, and choose{" "}
+                        <strong>Copy Channel ID</strong>.
                       </li>
                     </ul>
                   </div>
@@ -505,13 +533,18 @@ export function PlatformCard({
                     <p className="font-medium text-foreground text-xs">How to configure Slack:</p>
                     <ul className="list-disc pl-4 space-y-1">
                       <li>
-                        <strong>Token (xoxc-...):</strong> Open Slack in your web browser, press F12, inspect any request under the Network tab, and copy the token starting with <code>xoxc-</code> in the request payload or response.
+                        <strong>Token (xoxc-...):</strong> Open Slack in your web browser, press
+                        F12, inspect any request under the Network tab, and copy the token starting
+                        with <code>xoxc-</code> in the request payload or response.
                       </li>
                       <li>
-                        <strong>d cookie (xoxd-...):</strong> In browser Developer Tools, go to Application &gt; Cookies &gt; slack.com, and copy the value of the <code>d</code> cookie.
+                        <strong>d cookie (xoxd-...):</strong> In browser Developer Tools, go to
+                        Application &gt; Cookies &gt; slack.com, and copy the value of the{" "}
+                        <code>d</code> cookie.
                       </li>
                       <li>
-                        <strong>Channel ID:</strong> Right-click the channel name in Slack, click &apos;View channel details&apos;, and copy the ID at the bottom.
+                        <strong>Channel ID:</strong> Right-click the channel name in Slack, click
+                        &apos;View channel details&apos;, and copy the ID at the bottom.
                       </li>
                     </ul>
                   </div>
@@ -532,14 +565,12 @@ export function PlatformCard({
                     }
                     onClick={() => connectBot.mutate()}
                   >
-                    {connectBot.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+                    {connectBot.isPending && (
+                      <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                    )}
                     Update channels
                   </Button>
-                  <Button
-                    variant="outline"
-                    disabled={connectBot.isPending}
-                    onClick={cancelManage}
-                  >
+                  <Button variant="outline" disabled={connectBot.isPending} onClick={cancelManage}>
                     Cancel
                   </Button>
                 </>
@@ -559,7 +590,9 @@ export function PlatformCard({
                     disabled={isDemo || disconnect.isPending}
                     onClick={() => disconnect.mutate()}
                   >
-                    {disconnect.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+                    {disconnect.isPending && (
+                      <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                    )}
                     Disconnect
                   </Button>
                 </>
@@ -574,7 +607,9 @@ export function PlatformCard({
                   }
                   onClick={() => connectBot.mutate()}
                 >
-                  {connectBot.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+                  {connectBot.isPending && (
+                    <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                  )}
                   Connect
                 </Button>
               )}

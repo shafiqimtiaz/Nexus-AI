@@ -244,7 +244,9 @@ export function ResourceForm({
             Cancel
           </Button>
           <Button disabled={busy || !canSave} onClick={() => save.mutate()}>
-            {save.isPending && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
+            {save.isPending && (
+              <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+            )}
             {isEdit ? "Save" : "Add"}
           </Button>
         </DialogFooter>

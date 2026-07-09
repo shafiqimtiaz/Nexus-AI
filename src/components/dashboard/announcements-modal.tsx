@@ -3,24 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Megaphone01Icon,
-  ArrowDown01Icon,
-  ExternalLinkIcon,
-} from "@hugeicons/core-free-icons";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Megaphone01Icon, ArrowDown01Icon, ExternalLinkIcon } from "@hugeicons/core-free-icons";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import type { DashboardAnnouncement } from "@/lib/dashboard";
 
 const PAGE_SIZE = 5;
 
-const PILL_BASE =
-  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium";
+const PILL_BASE = "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium";
 
 const PLATFORM_LABELS: Record<string, string> = {
   google_classroom: "Google Classroom",
@@ -38,11 +28,7 @@ function formatPlatform(type: string): string {
   return PLATFORM_LABELS[type] ?? type;
 }
 
-function AnnouncementRow({
-  item,
-}: {
-  item: DashboardAnnouncement;
-}) {
+function AnnouncementRow({ item }: { item: DashboardAnnouncement }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -65,9 +51,7 @@ function AnnouncementRow({
           />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-medium">
-                {item.title || "Announcement"}
-              </span>
+              <span className="truncate text-sm font-medium">{item.title || "Announcement"}</span>
               {item.source_url && (
                 <HugeiconsIcon
                   icon={ExternalLinkIcon}
@@ -220,11 +204,12 @@ export function AnnouncementsModal({
             <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No announcements yet.
-          </p>
+          <p className="py-8 text-center text-sm text-muted-foreground">No announcements yet.</p>
         ) : (
-          <div ref={scrollContainerRef} className="max-h-[70vh] space-y-2 overflow-y-auto scrollbar-none pr-1">
+          <div
+            ref={scrollContainerRef}
+            className="max-h-[70vh] space-y-2 overflow-y-auto scrollbar-none pr-1"
+          >
             {items.map((item) => (
               <AnnouncementRow key={item.id} item={item} />
             ))}

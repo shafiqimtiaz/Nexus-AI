@@ -257,7 +257,9 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
     <div className="flex h-full flex-col">
       {isDemo && hasKey && (
         <div className="mb-3 flex items-center justify-between gap-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-          <span className="text-xs font-medium">Demo mode — using your Gemini key (stored in this browser).</span>
+          <span className="text-xs font-medium">
+            Demo mode — using your Gemini key (stored in this browser).
+          </span>
           <button
             type="button"
             onClick={clearDemoKey}
@@ -281,7 +283,10 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
 
       {hasKey === null && (
         <div className="flex-1 flex items-center justify-center">
-          <HugeiconsIcon icon={Loading03Icon} className="h-8 w-8 animate-spin text-muted-foreground" />
+          <HugeiconsIcon
+            icon={Loading03Icon}
+            className="h-8 w-8 animate-spin text-muted-foreground"
+          />
         </div>
       )}
 
@@ -372,7 +377,8 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
                   m.role === "user" ? "bg-green-600 text-white" : "bg-muted text-foreground"
                 )}
               >
-                {m.role === "assistant" && expanded &&
+                {m.role === "assistant" &&
+                  expanded &&
                   m.toolCalls.map((call) => <ToolCallDisplay key={call.toolCallId} call={call} />)}
                 {m.content ? (
                   m.role === "assistant" ? (
@@ -429,11 +435,7 @@ export function ChatInterface({ role, expanded = false }: { role: Role; expanded
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            !hasKey
-              ? isDemo
-                ? "Add a Gemini key to chat"
-                : "API Key required"
-              : "Message Nexus…"
+            !hasKey ? (isDemo ? "Add a Gemini key to chat" : "API Key required") : "Message Nexus…"
           }
           disabled={busy || !hasKey}
           className="h-10"

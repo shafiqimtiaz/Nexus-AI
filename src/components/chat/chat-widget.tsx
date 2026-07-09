@@ -31,7 +31,14 @@ export function ChatWidget({ role }: { role: Role }) {
           aria-label="Open AI chat"
           className="fixed bottom-6 right-8 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-card shadow-lg ring-1 ring-border transition-transform hover:scale-105 cursor-pointer"
         >
-          <Image src="/nexus-icon.png" alt="Nexus" width={36} height={36} className="h-9 w-9" priority />
+          <Image
+            src="/nexus-icon.png"
+            alt="Nexus"
+            width={36}
+            height={36}
+            className="h-9 w-9"
+            priority
+          />
         </button>
       )}
 

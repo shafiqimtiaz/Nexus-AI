@@ -27,9 +27,7 @@ function Stat({
   return (
     <Card
       className={
-        onClick
-          ? "group relative cursor-pointer transition-colors hover:bg-accent/50"
-          : undefined
+        onClick ? "group relative cursor-pointer transition-colors hover:bg-accent/50" : undefined
       }
     >
       {onClick && (
@@ -108,10 +106,7 @@ export function QuickStats({
         assignments={assignments}
       />
 
-      <AnnouncementsModal
-        open={announcementsOpen}
-        onOpenChange={setAnnouncementsOpen}
-      />
+      <AnnouncementsModal open={announcementsOpen} onOpenChange={setAnnouncementsOpen} />
 
       <ExamsModal open={examsOpen} onOpenChange={setExamsOpen} exams={exams} />
     </>

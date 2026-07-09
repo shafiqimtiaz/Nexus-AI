@@ -157,9 +157,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const nextExam = (nextExamRes.data ?? null) as DashboardEvent | null;
   if (nextExam && !upcoming.some((e) => e.id === nextExam.id)) {
     upcoming.push(nextExam);
-    upcoming.sort(
-      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-    );
+    upcoming.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
   }
 
   return {
@@ -172,7 +170,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     },
     upcomingAssignmentEvents: (assignmentEventsRes.data ?? []).map((e: any) => ({
       ...e,
-      platform: e.source_platform ? platformById.get(e.source_platform)?.type ?? null : null,
+      platform: e.source_platform ? (platformById.get(e.source_platform)?.type ?? null) : null,
     })) as DashboardEvent[],
     recentAnnouncements: (announcementsRes.data ?? []).map((a: any) => {
       const platform = platformById.get(a.platform_id);
