@@ -58,8 +58,11 @@ export function Sidebar() {
               className="h-8 w-8 shrink-0"
               priority
             />
-            <span className="text-xl font-semibold tracking-tight whitespace-nowrap overflow-hidden">
-              Nexus.ai
+            <span className="flex items-center gap-1 whitespace-nowrap overflow-hidden">
+              <span className="text-xl font-semibold tracking-tight">Nexus</span>
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
+                ai
+              </span>
             </span>
           </div>
         )}
