@@ -59,7 +59,7 @@ export function Sidebar() {
               priority
             />
             <span className="text-xl font-semibold tracking-tight whitespace-nowrap overflow-hidden">
-              Nexus
+              Nexus.ai
             </span>
           </div>
         )}
