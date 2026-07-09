@@ -1,4 +1,5 @@
 import "server-only";
+import { isJoinLeaveMessage } from "@/lib/utils";
 
 // Minimal Discord user-token message fetch. SERVER ONLY — the user (browser)
 // token is a secret and must never reach the browser. Returns small,
@@ -22,6 +23,9 @@ interface RawDiscordMessage {
   content?: string;
   timestamp?: string;
   author?: { username?: string };
+  // Discord encodes system events (member added/removed) with a non-zero
+  // `type`. RECIPIENT_ADD (7) and RECIPIENT_REMOVE (6) are join/leave noise.
+  type?: number;
 }
 
 function normalizeMessage(raw: RawDiscordMessage, channelId: string): DiscordMessage {
@@ -33,6 +37,9 @@ function normalizeMessage(raw: RawDiscordMessage, channelId: string): DiscordMes
     url: `https://discord.com/channels/@me/${channelId}/${raw.id}`,
   };
 }
+
+// Discord system message types that are member join/leave chatter.
+const DISCORD_SYSTEM_NOISE_TYPES = new Set([6, 7]);
 
 async function discordGet(token: string, path: string): Promise<RawDiscordMessage[]> {
   const res = await fetch(`${DISCORD_API}${path}`, {
@@ -47,8 +54,8 @@ async function discordGet(token: string, path: string): Promise<RawDiscordMessag
   return (await res.json()) as RawDiscordMessage[];
 }
 
-// Recent channel messages, newest first. Skips messages with empty content
-// (bot embeds, attachment-only posts, system messages).
+// Recent channel messages, newest first. Skips empty content (bot embeds,
+// attachment-only posts) and member join/leave system messages.
 export async function fetchChannelMessages(
   token: string,
   channelId: string,
@@ -56,15 +63,23 @@ export async function fetchChannelMessages(
 ): Promise<DiscordMessage[]> {
   const raw = await discordGet(token, `/channels/${channelId}/messages?limit=${limit}`);
 
-  return raw.map((m) => normalizeMessage(m, channelId)).filter((m) => m.content.trim().length > 0);
+  return raw
+    .filter((m) => !m.type || !DISCORD_SYSTEM_NOISE_TYPES.has(m.type))
+    .map((m) => normalizeMessage(m, channelId))
+    .filter((m) => m.content.trim().length > 0)
+    .filter((m) => !isJoinLeaveMessage(m.content));
 }
 
-// Pinned messages for a channel. Same shape and same empty-content filter.
+// Pinned messages for a channel. Same shape and same noise filters.
 export async function fetchPinnedMessages(
   token: string,
   channelId: string
 ): Promise<DiscordMessage[]> {
   const raw = await discordGet(token, `/channels/${channelId}/pins`);
 
-  return raw.map((m) => normalizeMessage(m, channelId)).filter((m) => m.content.trim().length > 0);
+  return raw
+    .filter((m) => !m.type || !DISCORD_SYSTEM_NOISE_TYPES.has(m.type))
+    .map((m) => normalizeMessage(m, channelId))
+    .filter((m) => m.content.trim().length > 0)
+    .filter((m) => !isJoinLeaveMessage(m.content));
 }

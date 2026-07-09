@@ -1,4 +1,5 @@
 import "server-only";
+import { isJoinLeaveMessage } from "@/lib/utils";
 
 // Minimal Slack browser-token history fetch. SERVER ONLY — the xoxc token and
 // the `d` session cookie are secrets and must never reach the browser. Returns
@@ -20,7 +21,21 @@ interface RawSlackMessage {
   user?: string;
   bot_id?: string;
   username?: string;
+  // System messages (joins, leaves, invites) carry a subtype and no academic
+  // value; we drop them during ingestion.
+  subtype?: string;
 }
+
+// Slack subtypes that are pure channel-noise (members joining/leaving/being
+// added or invited) and must never become announcements.
+const SLACK_NOISE_SUBTYPES = new Set([
+  "channel_join",
+  "channel_leave",
+  "group_join",
+  "group_leave",
+  "bot_add",
+  "bot_remove",
+]);
 
 function normalizeMessage(raw: RawSlackMessage, channelId: string): SlackMessage {
   const tsId = raw.ts.replace(".", "");
@@ -66,6 +81,8 @@ export async function fetchSlackMessages(
   const messages = (json.messages ?? []) as RawSlackMessage[];
 
   return messages
+    .filter((m) => !m.subtype || !SLACK_NOISE_SUBTYPES.has(m.subtype))
     .map((m) => normalizeMessage(m, channelId))
-    .filter((m) => m.content.trim().length > 0);
+    .filter((m) => m.content.trim().length > 0)
+    .filter((m) => !isJoinLeaveMessage(m.content));
 }

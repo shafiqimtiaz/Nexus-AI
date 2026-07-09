@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { requireOwner } from "@/lib/auth";
 import { fetchChannelMessages } from "@/lib/platforms/discord";
 import { fetchSlackMessages } from "@/lib/platforms/slack";
+import { isJoinLeaveMessage } from "@/lib/utils";
 import { listAnnouncements, listAssignments } from "../../../../mcp/classroom/tools";
 import { createGoogle } from "@ai-sdk/google";
 import { generateText } from "ai";
@@ -397,11 +398,7 @@ async function syncSlack(
     )
   )
     .flat()
-    .filter((m) => {
-      if (/has (joined|left) the channel/i.test(m.content)) return false;
-      if (/New member joined the channel/i.test(m.content)) return false;
-      return true;
-    });
+    .filter((m) => !isJoinLeaveMessage(m.content));
 
   const annCount = await upsertAnnouncements(
     db,
