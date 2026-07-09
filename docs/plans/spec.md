@@ -34,14 +34,14 @@ Nexus connects to a student's academic platforms (Google Classroom via OAuth, Di
 
 ### 2.1 Dashboard (landing page)
 
-| Widget                 | Priority    | Description                                                      |
-| ---------------------- | ----------- | ---------------------------------------------------------------- |
-| Upcoming Exams/Quizzes | **Primary** | Next 7 days of exams/quizzes with countdown                      |
-| Today's Schedule       | **Primary** | Today's events and study blocks                                  |
-| Quick Stats            | **Primary** | Days until next exam, unread announcements, upcoming assignments |
-| Recent Announcements   | **Primary** | Latest synced announcements from connected platforms             |
+| Widget                 | Priority    | Description                                                          |
+| ---------------------- | ----------- | -------------------------------------------------------------------- |
+| Upcoming Exams/Quizzes | **Primary** | Next 7 days of exams/quizzes with countdown                          |
+| Today's Schedule       | **Primary** | Today's events and study blocks                                      |
+| Quick Stats            | **Primary** | Days until next exam, unread announcements, upcoming assignments     |
+| Recent Announcements   | **Primary** | Latest synced announcements from connected platforms                 |
 | Agent Activity         | **Primary** | Audit log of autonomous concierge actions (sync, calendar, resource) |
-| Pinned Resources       | Secondary   | User-pinned resource links                                       |
+| Pinned Resources       | Secondary   | User-pinned resource links                                           |
 
 Visiting the dashboard triggers a background sync (see §5 Ingestion).
 
@@ -86,13 +86,13 @@ A **mid-conversation model selector** lets the user switch between `gemini-3.1-f
 
 ### 2.5 Options (Settings)
 
-| Feature           | Description                                                                                              |
-| ----------------- | -------------------------------------------------------------------------------------------------------- |
-| Google Classroom  | Connect via Google OAuth (authorization code flow); pick class                                           |
-| Discord           | Paste your own user token + channel ID (no bot to create or invite)                                      |
-| Slack             | Paste your `xoxc-` token, `xoxd-` (`d` cookie) value + channel ID                                        |
-| Connection status | Per-platform connected indicator + last synced time                                                      |
-| Disconnect        | Removes stored tokens                                                                                    |
+| Feature           | Description                                                         |
+| ----------------- | ------------------------------------------------------------------- |
+| Google Classroom  | Connect via Google OAuth (authorization code flow); pick class      |
+| Discord           | Paste your own user token + channel ID (no bot to create or invite) |
+| Slack             | Paste your `xoxc-` token, `xoxd-` (`d` cookie) value + channel ID   |
+| Connection status | Per-platform connected indicator + last synced time                 |
+| Disconnect        | Removes stored tokens                                               |
 
 LLM API keys are **not** user-facing: the Gemini key lives in a server env var only.
 
@@ -100,11 +100,11 @@ LLM API keys are **not** user-facing: the Gemini key lives in a server env var o
 
 ## 3. Supported Platforms
 
-| Platform             | Connection Method              | What It Pulls                                     |
-| -------------------- | ------------------------------ | ------------------------------------------------- |
-| **Google Classroom** | Google OAuth (owner only)      | Announcements, assignments + due dates, materials |
-| **Discord**          | User token + channel ID        | Channel messages (announcements), pinned messages |
-| **Slack**            | `xoxc` token + `d` cookie + channel ID | Channel messages (announcements)          |
+| Platform             | Connection Method                      | What It Pulls                                     |
+| -------------------- | -------------------------------------- | ------------------------------------------------- |
+| **Google Classroom** | Google OAuth (owner only)              | Announcements, assignments + due dates, materials |
+| **Discord**          | User token + channel ID                | Channel messages (announcements), pinned messages |
+| **Slack**            | `xoxc` token + `d` cookie + channel ID | Channel messages (announcements)                  |
 
 Google Classroom is accessed through an **in-repo MCP server**; Discord and Slack through in-process AI SDK tools using the owner's own session tokens.
 
@@ -191,20 +191,20 @@ No cron infrastructure. Data is fresh whenever the user looks.
 
 ## 9. Non-Functional Requirements
 
-| Requirement     | Detail                                                                                      |
-| --------------- | -------------------------------------------------------------------------------------------- |
-| **Hosting**     | Vercel (public URL for judges; demo mode requires no login)                                 |
+| Requirement     | Detail                                                                                                                                                    |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Hosting**     | Vercel (public URL for judges; demo mode requires no login)                                                                                               |
 | **Performance** | Session read from cookies (no auth round-trip per render); instant `loading.tsx` feedback on navigation; sync happens in background; AI responses stream. |
-| **Security**    | See §4 — this is also the Concierge track story                                             |
-| **Docs**        | README: problem, solution, architecture diagram, setup + deploy reproduction steps; PRIVACY.md |
-| **Writeup**     | ≤2,500 words; video ≤5 min on YouTube; cover image                                          |
+| **Security**    | See §4 — this is also the Concierge track story                                                                                                           |
+| **Docs**        | README: problem, solution, architecture diagram, setup + deploy reproduction steps; PRIVACY.md                                                            |
+| **Writeup**     | ≤2,500 words; video ≤5 min on YouTube; cover image                                                                                                        |
 
 ---
 
 ## 10. Terminology
 
 | Term               | Meaning                                                                                |
-| ------------------ | --------------------------------------------------------------------------------------- |
+| ------------------ | -------------------------------------------------------------------------------------- |
 | **MCP Server**     | Model Context Protocol server exposing Google Classroom tools to the agent             |
 | **Resource**       | A saved link (URL) to academic material — not an uploaded file                         |
 | **Label**          | User-defined tag for organizing resources                                              |

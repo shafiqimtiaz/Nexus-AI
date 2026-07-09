@@ -55,7 +55,10 @@ function main() {
   // re-export of the `.cjs` shim rather than a `module.exports` statement.)
   const jsShimPath = resolve(projectRoot, "node_modules/typescript/lib/typescript.js");
   mkdirSync(dirname(jsShimPath), { recursive: true });
-  writeFileSync(jsShimPath, 'export * from "./eslint-typescript.cjs";\nexport { default } from "./eslint-typescript.cjs";\n');
+  writeFileSync(
+    jsShimPath,
+    'export * from "./eslint-typescript.cjs";\nexport { default } from "./eslint-typescript.cjs";\n'
+  );
 
   const exports = tsPkg.exports || (tsPkg.exports = {});
   if (exports["."] === "./lib/eslint-typescript.cjs") return; // Already spliced.

@@ -90,7 +90,8 @@ function getInitialData(): DbSchema {
         author: "Prof. Rivera",
         source_url: "https://classroom.google.com/demo/ann-1",
         announced_at: addHours(now, -2).toISOString(),
-        ai_summary: "📍 Midterm location: Room 204. A seating chart goes up the day before the exam.",
+        ai_summary:
+          "📍 Midterm location: Room 204. A seating chart goes up the day before the exam.",
       },
       {
         id: "a2",

@@ -10,7 +10,7 @@ Date: 2026-07-08
 1. **Dashboard inconsistency (symptom).** The "Upcoming exams & quizzes" list in
    `src/lib/dashboard.ts` is hard-capped to `now → now + 7 days`
    (`gte(start_time, now).lte(start_time, now+7d).in(event_type, ["exam","quiz"])`).
-   The "Days to next exam" stat, by contrast, counts *any* future exam. So an
+   The "Days to next exam" stat, by contrast, counts _any_ future exam. So an
    exam 54 days out appeared in the stat but not the list.
 
 2. **Auto-detection stores past dates (root cause).** The concierge pass in
@@ -27,6 +27,7 @@ visible now.
 ## Approach (recommended, approved)
 
 ### A. Dashboard — union-in the next exam
+
 Keep the 7-day window for quizzes/near-term items, but always also include the
 single nearest future exam regardless of distance. The query for the next exam
 (`nextExamRes`) already existed (selects `start_time`, single, `>= now`); it was
@@ -34,25 +35,30 @@ widened to select full columns, then merged into `upcomingEvents` (deduped by
 id, re-sorted by `start_time`). This makes the list match the stat.
 
 ### B. Auto-detection — skip non-future events
+
 Added `isFutureDate(value)` helper in `sync/route.ts`:
+
 - returns false for non-string, unparseable, or past dates.
-The event-scheduling branch (`if (result.hasEvent && result.event && ...)`) now
-additionally requires `isFutureDate(result.event.start_time)`. When false, the
-event is neither inserted, pushed to Google Calendar, nor logged as an
-"Autoscheduled" action — matching the concierge's own "upcoming" intent and
-preventing recurrence of invisible past events. No dates are fabricated.
+  The event-scheduling branch (`if (result.hasEvent && result.event && ...)`) now
+  additionally requires `isFutureDate(result.event.start_time)`. When false, the
+  event is neither inserted, pushed to Google Calendar, nor logged as an
+  "Autoscheduled" action — matching the concierge's own "upcoming" intent and
+  preventing recurrence of invisible past events. No dates are fabricated.
 
 ## Files changed
+
 - `src/lib/dashboard.ts` — widen `nextExamRes` select; merge next exam into
   `upcomingEvents`.
 - `src/app/api/sync/route.ts` — add `isFutureDate()`; guard event branch.
 
 ## Verification
+
 - `npx tsc --noEmit` → no errors.
 - DB: 3 exam / 2 quiz / 1 other / 0 assignment; `days_to_next_exam = 54`;
   next-7-day window correctly shows only the 2 quizzes while the exam surfaces
   in the stat and (after this change) the upcoming list.
 
 ## Out of scope
+
 - No UI redesign, no new sections, no date clamping/guessing.
 - Design doc not committed (repo policy: no commit without explicit request).

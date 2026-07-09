@@ -4,12 +4,12 @@ Nexus is a single-owner personal academic organizer built for the Kaggle AI Agen
 
 ## What data Nexus stores
 
-| Data | Source | Where it lives |
-| --- | --- | --- |
-| Announcements & assignments | Google Classroom, Discord, Slack | Supabase (owner) / local mock DB (demo) |
-| Calendar events & study blocks | Synced platforms, the AI agent, or manual entry | Supabase / local mock DB |
-| Resource links & labels | Saved by the owner or the AI agent | Supabase / local mock DB |
-| Connection credentials | Google OAuth tokens, Discord/Slack user tokens pasted by the owner | Supabase `platforms` table, server-side only |
+| Data                           | Source                                                             | Where it lives                               |
+| ------------------------------ | ------------------------------------------------------------------ | -------------------------------------------- |
+| Announcements & assignments    | Google Classroom, Discord, Slack                                   | Supabase (owner) / local mock DB (demo)      |
+| Calendar events & study blocks | Synced platforms, the AI agent, or manual entry                    | Supabase / local mock DB                     |
+| Resource links & labels        | Saved by the owner or the AI agent                                 | Supabase / local mock DB                     |
+| Connection credentials         | Google OAuth tokens, Discord/Slack user tokens pasted by the owner | Supabase `platforms` table, server-side only |
 
 ## Token handling
 

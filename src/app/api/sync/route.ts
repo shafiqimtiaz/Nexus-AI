@@ -144,9 +144,10 @@ async function upsertAnnouncements(
     .from("announcements")
     .select("id, external_id, title, ai_summary")
     .eq("platform_id", platformId);
-  const existingByExternal = new Map<string, { id: string; title: string | null; ai_summary: string | null }>(
-    (existingRows ?? []).map((r: any) => [r.external_id, r])
-  );
+  const existingByExternal = new Map<
+    string,
+    { id: string; title: string | null; ai_summary: string | null }
+  >((existingRows ?? []).map((r: any) => [r.external_id, r]));
 
   const toInsert: any[] = [];
   const toUpdate: any[] = [];
@@ -596,9 +597,7 @@ Rules:
               : result.resource
                 ? [result.resource]
                 : [];
-            const rawKeyDates: any[] = Array.isArray(result.key_dates)
-              ? result.key_dates
-              : [];
+            const rawKeyDates: any[] = Array.isArray(result.key_dates) ? result.key_dates : [];
 
             // Only schedule upcoming, well-formed events. Capture an optional
             // end_time when the model supplied a valid, later timestamp.
@@ -608,8 +607,7 @@ Rules:
                 const endRaw = typeof e.end_time === "string" ? e.end_time.trim() : "";
                 const endMs = endRaw ? new Date(endRaw).getTime() : NaN;
                 const startMs = new Date(e.start_time).getTime();
-                const end_time =
-                  !Number.isNaN(endMs) && endMs > startMs ? endRaw : null;
+                const end_time = !Number.isNaN(endMs) && endMs > startMs ? endRaw : null;
                 return { ...e, end_time };
               });
 
@@ -708,9 +706,7 @@ Rules:
             //    single 'calendar' row per announcement anyway.
             const keyDatesText =
               rawKeyDates.length > 0
-                ? ` Notable dates: ${rawKeyDates
-                    .map((k) => `${k.label} (${k.date})`)
-                    .join("; ")}.`
+                ? ` Notable dates: ${rawKeyDates.map((k) => `${k.label} (${k.date})`).join("; ")}.`
                 : "";
             if (scheduled.length > 0) {
               try {
@@ -800,7 +796,10 @@ Rules:
 Announcement:
 "${ann.content}"`,
           });
-          const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
+          const clean = text
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
           const parsed = JSON.parse(clean);
           const patch: Record<string, unknown> = {};
           const aiTitle = sanitizeTitle(parsed.title);

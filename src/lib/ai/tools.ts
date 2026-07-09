@@ -375,9 +375,7 @@ export function getLocalTools(): Record<string, Tool> {
         const db = createServerClient();
         const { data, error } = await db
           .from("announcements")
-          .select(
-            "id, title, content, ai_summary, author, source_url, announced_at, platform_id"
-          )
+          .select("id, title, content, ai_summary, author, source_url, announced_at, platform_id")
           .order("announced_at", { ascending: false, nullsFirst: false })
           .limit(limit ?? 10);
 
