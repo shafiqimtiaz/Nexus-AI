@@ -73,9 +73,19 @@ function sanitizeTitle(raw: unknown): string | null {
     .replace(/<[^>]*>/g, "")
     .replace(/[*_`#>~]/g, "")
     .replace(/\s+/g, " ")
-    .replace(/^["'“”‘’\s]+|["'“”‘’\s]+$/g, "")
+    .replace(/^["'"''\s]+|["'"''\s]+$/g, "")
     .trim();
   return cleaned ? cleaned.slice(0, 80) : null;
+}
+
+// Strip HTML tags, platform mentions (Discord <@&...>, Slack <@U...>),
+// collapse whitespace. Applied at ingestion so raw content never hits the DB.
+function sanitizeContent(raw: string): string {
+  return raw
+    .replace(/<[^>]+>/g, "")
+    .replace(/<@[!&]?\d+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 // Insert-only dedup: existing (platform_id, external_id) rows are left untouched.
@@ -217,7 +227,7 @@ async function syncClassroom(
       platform_id: platform.id,
       external_id: a.id,
       title: deriveTitle(a.text),
-      content: a.text,
+      content: sanitizeContent(a.text),
       source_url: a.url,
       announced_at: a.createdAt || null,
     }))
@@ -271,7 +281,7 @@ async function syncDiscord(
       platform_id: platform.id,
       external_id: m.id,
       title: deriveTitle(m.content),
-      content: m.content,
+      content: sanitizeContent(m.content),
       author: m.author || null,
       source_url: m.url,
       announced_at: m.timestamp || null,
@@ -304,7 +314,7 @@ async function syncSlack(
       platform_id: platform.id,
       external_id: m.id,
       title: deriveTitle(m.content),
-      content: m.content,
+      content: sanitizeContent(m.content),
       author: m.author || null,
       source_url: m.url,
       announced_at: m.timestamp || null,
