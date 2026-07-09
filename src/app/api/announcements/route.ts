@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   let query = db
     .from("announcements")
-    .select("id, title, content, author, source_url, announced_at, platform_id")
+    .select("id, title, content, ai_summary, author, source_url, announced_at, platform_id")
     .order("announced_at", { ascending: false });
 
   if (platform) {
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Try without the .in filter
     const fallback = db
       .from("announcements")
-      .select("id, title, content, author, source_url, announced_at, platform_id")
+      .select("id, title, content, ai_summary, author, source_url, announced_at, platform_id")
       .order("announced_at", { ascending: false });
     const fbResult = await fallback;
     allData = fbResult.data;
@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
       id: item.id,
       title: item.title,
       content: item.content,
+      ai_summary: item.ai_summary ?? null,
       author: item.author,
       source_url: item.source_url,
       announced_at: item.announced_at,

@@ -90,6 +90,7 @@ function getInitialData(): DbSchema {
         author: "Prof. Rivera",
         source_url: "https://classroom.google.com/demo/ann-1",
         announced_at: addHours(now, -2).toISOString(),
+        ai_summary: "📍 Midterm location: Room 204. A seating chart goes up the day before the exam.",
       },
       {
         id: "a2",
@@ -100,6 +101,8 @@ function getInitialData(): DbSchema {
         author: "Prof. Rivera",
         source_url: "https://classroom.google.com/demo/ann-2",
         announced_at: addDays(now, -1).toISOString(),
+        ai_summary:
+          "🕑 Office hours are moved to Thursday 2–4 PM this week (faculty meeting conflict).",
       },
       {
         id: "a3",
@@ -110,6 +113,8 @@ function getInitialData(): DbSchema {
         author: "TA Nguyen",
         source_url: "https://classroom.google.com/demo/ann-3",
         announced_at: addDays(now, -2).toISOString(),
+        ai_summary:
+          "📝 Assignment 3 (Linked Lists) is live — starter code is attached. Due date in the calendar.",
       },
       {
         id: "a4",
@@ -120,6 +125,7 @@ function getInitialData(): DbSchema {
         author: "Prof. Rivera",
         source_url: "https://classroom.google.com/demo/ann-4",
         announced_at: addDays(now, -3).toISOString(),
+        ai_summary: "📖 Before Monday's lecture: read Chapter 7 (Trees).",
       },
     ],
     labels: [

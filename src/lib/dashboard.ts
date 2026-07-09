@@ -22,6 +22,7 @@ export type DashboardAnnouncement = {
   id: string;
   title: string | null;
   content: string;
+  ai_summary: string | null;
   author: string | null;
   source_url: string | null;
   announced_at: string | null;
@@ -126,7 +127,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .limit(20),
     db
       .from("announcements")
-      .select("id, title, content, author, source_url, announced_at, platform_id")
+      .select("id, title, content, ai_summary, author, source_url, announced_at, platform_id")
       .order("announced_at", { ascending: false, nullsFirst: false })
       .limit(30),
     db.from("resources").select("id, title, url, description").eq("is_pinned", true).limit(6),
@@ -178,6 +179,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         id: a.id,
         title: a.title,
         content: truncate(a.content ?? ""),
+        ai_summary: a.ai_summary ?? null,
         author: a.author,
         source_url: a.source_url,
         announced_at: a.announced_at,

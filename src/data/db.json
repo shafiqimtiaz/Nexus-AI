@@ -70,6 +70,7 @@
       "external_id": "demo-ann-1",
       "title": "Midterm logistics",
       "content": "The midterm is in room 204. Seating chart will be posted the day before.",
+      "ai_summary": "📍 Midterm location: Room 204. A seating chart goes up the day before the exam.",
       "author": "Prof. Rivera",
       "source_url": "https://classroom.google.com/demo/ann-1",
       "announced_at": "2026-07-06T00:30:04.305Z"
@@ -80,6 +81,7 @@
       "external_id": "demo-ann-2",
       "title": "Office hours moved",
       "content": "This week office hours move to Thursday 2–4pm due to a faculty meeting.",
+      "ai_summary": "🕑 Office hours are moved to Thursday 2–4 PM this week (faculty meeting conflict).",
       "author": "Prof. Rivera",
       "source_url": "https://classroom.google.com/demo/ann-2",
       "announced_at": "2026-07-05T02:30:04.305Z"
@@ -90,6 +92,7 @@
       "external_id": "demo-ann-3",
       "title": "Assignment 3 posted",
       "content": "Assignment 3 (Linked Lists) is now available. Starter code is attached.",
+      "ai_summary": "📝 Assignment 3 (Linked Lists) is live — starter code is attached. Due date in the calendar.",
       "author": "TA Nguyen",
       "source_url": "https://classroom.google.com/demo/ann-3",
       "announced_at": "2026-07-04T02:30:04.305Z"
@@ -100,6 +103,7 @@
       "external_id": "demo-ann-4",
       "title": "Reading for next week",
       "content": "Please read Chapter 7 (Trees) before Monday's lecture.",
+      "ai_summary": "📖 Before Monday's lecture: read Chapter 7 (Trees).",
       "author": "Prof. Rivera",
       "source_url": "https://classroom.google.com/demo/ann-4",
       "announced_at": "2026-07-03T02:30:04.305Z"

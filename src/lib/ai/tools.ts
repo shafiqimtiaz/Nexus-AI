@@ -375,7 +375,9 @@ export function getLocalTools(): Record<string, Tool> {
         const db = createServerClient();
         const { data, error } = await db
           .from("announcements")
-          .select("id, title, content, author, source_url, announced_at, platform_id")
+          .select(
+            "id, title, content, ai_summary, author, source_url, announced_at, platform_id"
+          )
           .order("announced_at", { ascending: false, nullsFirst: false })
           .limit(limit ?? 10);
 
@@ -386,6 +388,9 @@ export function getLocalTools(): Record<string, Tool> {
           const { platform_id, ...rest } = a;
           return {
             ...rest,
+            // Prefer the AI-generated summary so the model summarizes from the
+            // condensed version when present.
+            summary: a.ai_summary ?? null,
             platform: platform_id ? (platformById.get(platform_id) ?? null) : null,
           };
         });

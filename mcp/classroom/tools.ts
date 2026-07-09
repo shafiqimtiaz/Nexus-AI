@@ -78,6 +78,7 @@ export interface AnnouncementSummary {
   text: string;
   createdAt: string;
   url: string;
+  author: string | null;
 }
 
 export async function listAnnouncements(limit = 10): Promise<AnnouncementSummary[]> {
@@ -88,15 +89,29 @@ export async function listAnnouncements(limit = 10): Promise<AnnouncementSummary
       text?: string;
       creationTime?: string;
       alternateLink?: string;
+      creator?: {
+        userId?: string;
+        profile?: { name?: string; emailAddress?: string };
+        emailAddress?: string;
+      } | null;
     }>;
   }>(`/courses/${courseId}/announcements`, token, { pageSize: limit });
 
-  return (data.announcements ?? []).slice(0, limit).map((a) => ({
-    id: a.id,
-    text: a.text ?? "",
-    createdAt: a.creationTime ?? "",
-    url: a.alternateLink ?? "",
-  }));
+  return (data.announcements ?? []).slice(0, limit).map((a) => {
+    const creator = a.creator;
+    const author =
+      creator?.profile?.name ||
+      creator?.profile?.emailAddress ||
+      creator?.emailAddress ||
+      (creator?.userId ? `User ${creator.userId}` : null);
+    return {
+      id: a.id,
+      text: a.text ?? "",
+      createdAt: a.creationTime ?? "",
+      url: a.alternateLink ?? "",
+      author,
+    };
+  });
 }
 
 export interface AssignmentSummary {

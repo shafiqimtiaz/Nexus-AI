@@ -31,20 +31,24 @@ VALUES
     NULL, 'demo-study-1', false);
 
 -- Announcements linked to the demo platform
-INSERT INTO announcements (platform_id, external_id, title, content, author, source_url, announced_at)
+INSERT INTO announcements (platform_id, external_id, title, content, author, source_url, announced_at, ai_summary)
 VALUES
   ('11111111-1111-1111-1111-111111111111', 'demo-ann-1', 'Midterm logistics',
     'The midterm is in room 204. Seating chart will be posted the day before.',
-    'Prof. Rivera', 'https://classroom.google.com/demo/ann-1', now() - interval '2 hours'),
+    'Prof. Rivera', 'https://classroom.google.com/demo/ann-1', now() - interval '2 hours',
+    '📍 Midterm location: Room 204. A seating chart goes up the day before the exam.'),
   ('11111111-1111-1111-1111-111111111111', 'demo-ann-2', 'Office hours moved',
     'This week office hours move to Thursday 2–4pm due to a faculty meeting.',
-    'Prof. Rivera', 'https://classroom.google.com/demo/ann-2', now() - interval '1 day'),
+    'Prof. Rivera', 'https://classroom.google.com/demo/ann-2', now() - interval '1 day',
+    '🕑 Office hours are moved to Thursday 2–4 PM this week (faculty meeting conflict).'),
   ('11111111-1111-1111-1111-111111111111', 'demo-ann-3', 'Assignment 3 posted',
     'Assignment 3 (Linked Lists) is now available. Starter code is attached.',
-    'TA Nguyen', 'https://classroom.google.com/demo/ann-3', now() - interval '2 days'),
+    'TA Nguyen', 'https://classroom.google.com/demo/ann-3', now() - interval '2 days',
+    '📝 Assignment 3 (Linked Lists) is live — starter code is attached. Due date in the calendar.'),
   ('11111111-1111-1111-1111-111111111111', 'demo-ann-4', 'Reading for next week',
     'Please read Chapter 7 (Trees) before Monday''s lecture.',
-    'Prof. Rivera', 'https://classroom.google.com/demo/ann-4', now() - interval '3 days');
+    'Prof. Rivera', 'https://classroom.google.com/demo/ann-4', now() - interval '3 days',
+    '📖 Before Monday''s lecture: read Chapter 7 (Trees).');
 
 -- Labels
 INSERT INTO labels (id, name, color)

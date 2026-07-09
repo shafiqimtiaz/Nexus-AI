@@ -59,6 +59,9 @@ function AnnouncementRow({ item }: { item: DashboardAnnouncement }) {
                 />
               )}
             </div>
+            {item.ai_summary && (
+              <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{item.ai_summary}</p>
+            )}
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               {item.author && (
                 <span className={cn(PILL_BASE, "bg-blue-500/10 text-blue-600 dark:text-blue-400")}>
@@ -85,11 +88,18 @@ function AnnouncementRow({ item }: { item: DashboardAnnouncement }) {
         </div>
       </button>
 
-      {expanded && item.content && (
+      {expanded && (
         <div className="border-t px-4 py-3 text-sm">
-          <p className="leading-relaxed text-muted-foreground whitespace-pre-wrap">
-            {item.content}
-          </p>
+          {item.ai_summary && (
+            <p className="mb-2 rounded-md bg-primary/5 px-3 py-2 text-xs leading-relaxed text-foreground">
+              {item.ai_summary}
+            </p>
+          )}
+          {item.content && (
+            <p className="leading-relaxed text-muted-foreground whitespace-pre-wrap">
+              {item.content}
+            </p>
+          )}
           {item.source_url && (
             <a
               href={item.source_url}

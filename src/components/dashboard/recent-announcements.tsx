@@ -140,11 +140,9 @@ export function RecentAnnouncements({
                             />
                           )}
                         </div>
-                        {item.content && (
-                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                            {item.content}
-                          </p>
-                        )}
+                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                          {item.ai_summary || item.content}
+                        </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
                           {item.author && (
                             <span
