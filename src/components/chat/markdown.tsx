@@ -2,7 +2,11 @@ import { Fragment, type ReactNode } from "react";
 
 function safeHref(url: string): string | null {
   const trimmed = url.trim();
-  if (/^https?:\/\//i.test(trimmed) || /^mailto:/i.test(trimmed) || trimmed.startsWith("/")) {
+  if (
+    /^https?:\/\//i.test(trimmed) ||
+    /^mailto:/i.test(trimmed) ||
+    (trimmed.startsWith("/") && !trimmed.startsWith("//"))
+  ) {
     return trimmed;
   }
   return null;

@@ -517,7 +517,8 @@ Rules:
                   if (gid) await deleteGoogleCalendarEvent(gid);
                   scheduled.push(`cancelled ${eventType} "${target.title}"`);
                 } else {
-                  const patch: Record<string, unknown> = { description: ev.description };
+                  const patch: Record<string, unknown> = {};
+                  if (ev.description) patch.description = ev.description;
                   if (isValidDate(eventStart)) patch.start_time = eventStart;
                   if (ev.end_time) patch.end_time = ev.end_time;
                   await db.from("events").update(patch).eq("id", target.id);
@@ -526,7 +527,7 @@ Rules:
                       startTime: eventStart,
                       endTime:
                         ev.end_time ?? shiftEndForNewStart(target.start_time, target.end_time, eventStart),
-                      description: ev.description,
+                      description: ev.description || undefined,
                     });
                   }
                   scheduled.push(
