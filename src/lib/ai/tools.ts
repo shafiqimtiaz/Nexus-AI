@@ -375,23 +375,6 @@ export function getLocalTools(): Record<string, Tool> {
             "Optional platform type to filter by (e.g. 'google_classroom', 'discord', 'slack'). Omit to fetch from all platforms."
           ),
       }),
-    summarize_announcements: tool({
-      description:
-        "Fetch recent announcements from connected platforms (from the local cache). Each announcement includes the `platform` it came from (e.g. 'google_classroom', 'discord'). Returns their text so YOU can summarize it in your reply. Use when the student asks what's new or to summarize announcements, and mention which platform each update came from when relevant.",
-      inputSchema: z.object({
-        limit: z
-          .number()
-          .int()
-          .positive()
-          .optional()
-          .describe("Max announcements to fetch. Defaults to 10."),
-        platform: z
-          .string()
-          .optional()
-          .describe(
-            "Optional platform type to filter by (e.g. 'google_classroom', 'discord', 'slack'). Omit to fetch from all platforms."
-          ),
-      }),
       execute: async ({ limit, platform }) => {
         const db = createServerClient();
         const platformById = await getPlatformTypeMap(db);
