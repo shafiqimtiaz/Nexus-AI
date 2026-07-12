@@ -45,13 +45,15 @@ Extraction schema per event becomes `{action: "create"|"update"|"cancel", title,
 - System prompt: document cancellation ability and announcement-date awareness.
 - Fix `summarize_announcements`: apply platform filter in the DB query before limit (finding R6).
 
-### E. Google Calendar round-trip integrity (findings R1, R2, R3, R8)
+### E. Google Calendar — export-only mirror (findings R1, R2, R3, R8)
 
-- **R1 — mass-delete guard**: `listGoogleCalendarEvents` must distinguish "empty" from "error" (throw or return null on failure); deletion pass runs only on a confirmed-successful, fully-paginated listing (`nextPageToken` loop, not 250-cap).
-- **R2 — edit_event id clobber**: when editing an event whose `source_external_id` is not `gcal:`-prefixed (classroom/auto ids), never overwrite `source_external_id`/`source_platform` with the new gcal id. Store the gcal mapping without destroying the origin id (dedicated `gcal_event_id` column on `events` in the same migration; all gcal push/patch/delete paths read it).
-- **R3 — discarded gcal id**: extraction's `writeToGoogleCalendar` must persist the returned Google event id (into `gcal_event_id`), so the next sync's import pass recognizes the copy instead of re-importing it as a new event.
-- **R8 — PATCH drift**: when updating `start_time`, always send a consistent `end` (shift end by same delta, or default duration); surface gcal API errors to the caller instead of `console.error` swallow.
-- **Acceptance**: full round-trip verified — create local → appears in gcal once; edit local → gcal updates; cancel → gcal copy removed; gcal outage during sync → zero local deletions; re-sync after all of the above → zero duplicates.
+Decision (2026-07-12, confirmed with user): Nexus is the source of truth; Google Calendar is a one-way mirror. The gcal→local import pass and the local-deletion mirror pass are REMOVED, which eliminates R1 (outage mass-delete) and R3's re-import duplicates entirely rather than patching them.
+
+- **Remove import/delete passes**: `syncGoogleCalendar` in `src/app/api/sync/route.ts` is replaced by a small export-only backstop (`pushLocalEventsToGoogle`) that pushes user-created events (no `source_external_id`, no `gcal_event_id`) to Google. `listGoogleCalendarEvents` is deleted as unused.
+- **R2 — edit_event id clobber**: gcal mapping lives in a dedicated `gcal_event_id` column (added in §A); NO write path ever overwrites `source_platform`/`source_external_id` with a gcal id anymore. Legacy `gcal:`-prefixed `source_external_id` values are backfilled into `gcal_event_id` and still resolved via a `eventGcalId()` helper.
+- **R3 — discarded gcal id**: every `writeToGoogleCalendar` call persists the returned Google event id into `gcal_event_id`.
+- **R8 — PATCH drift**: when updating `start_time`, always send a consistent `end` (shift by the event's original duration, default 1h).
+- **Acceptance**: create local → appears in gcal once; edit local → same gcal event updates (no duplicate); cancel local → gcal copy deleted; re-run sync repeatedly → zero duplicates.
 
 ### F. Sync robustness (findings R4, R5)
 
@@ -79,6 +81,7 @@ Extraction schema per event becomes `{action: "create"|"update"|"cancel", title,
 - Token encryption at rest.
 - Review/approval queue for auto-detected events; undo for agent actions.
 - Course/semester data model; recurring events; study-plan conflict detection.
+- Google Calendar → Nexus import (deliberately removed; export-only mirror per §E).
 - User timezone modeling (R10) and concurrent-sync locking / mock-DB atomic writes (R11), unread flag in mock mode (R12).
 
 ## Testing
