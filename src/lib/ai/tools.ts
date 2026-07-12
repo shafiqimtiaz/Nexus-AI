@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import {
   writeToGoogleCalendar,
   updateGoogleCalendarEvent,
+  deleteGoogleCalendarEvent,
   eventGcalId,
 } from "@/lib/auth/google-oauth";
 import { shiftEndForNewStart } from "@/lib/events/helpers";
@@ -68,6 +69,7 @@ export function getLocalTools(): Record<string, Tool> {
           .select(`${EVENT_COLUMNS}, source_platform`)
           .gte("start_time", now.toISOString())
           .lte("start_time", until.toISOString())
+          .neq("status", "cancelled")
           .order("start_time", { ascending: true });
 
         if (error) return fail("get_upcoming_events", error.message);
@@ -168,6 +170,36 @@ export function getLocalTools(): Record<string, Tool> {
         }
 
         return { updated: data };
+      },
+    }),
+
+    cancel_event: tool({
+      description:
+        "Cancel an event by id — use when the student says a quiz/exam/class was cancelled or asks to remove an event. The event is kept as status 'cancelled' (reversible) and its Google Calendar copy is deleted. Get the id from get_upcoming_events first.",
+      inputSchema: z.object({
+        id: z.string().describe("The event id to cancel."),
+      }),
+      execute: async ({ id }) => {
+        const db = createServerClient();
+        const { data: row } = await db
+          .from("events")
+          .select("id, title, gcal_event_id, source_external_id")
+          .eq("id", id)
+          .maybeSingle();
+        if (!row) return fail("cancel_event", "event not found");
+
+        const { data, error } = await db
+          .from("events")
+          .update({ status: "cancelled" })
+          .eq("id", id)
+          .select(EVENT_COLUMNS)
+          .single();
+        if (error) return fail("cancel_event", error.message);
+
+        const gid = eventGcalId(row);
+        if (gid) await deleteGoogleCalendarEvent(gid);
+
+        return { cancelled: data };
       },
     }),
 
@@ -343,18 +375,45 @@ export function getLocalTools(): Record<string, Tool> {
             "Optional platform type to filter by (e.g. 'google_classroom', 'discord', 'slack'). Omit to fetch from all platforms."
           ),
       }),
+    summarize_announcements: tool({
+      description:
+        "Fetch recent announcements from connected platforms (from the local cache). Each announcement includes the `platform` it came from (e.g. 'google_classroom', 'discord'). Returns their text so YOU can summarize it in your reply. Use when the student asks what's new or to summarize announcements, and mention which platform each update came from when relevant.",
+      inputSchema: z.object({
+        limit: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Max announcements to fetch. Defaults to 10."),
+        platform: z
+          .string()
+          .optional()
+          .describe(
+            "Optional platform type to filter by (e.g. 'google_classroom', 'discord', 'slack'). Omit to fetch from all platforms."
+          ),
+      }),
       execute: async ({ limit, platform }) => {
         const db = createServerClient();
-        const { data, error } = await db
+        const platformById = await getPlatformTypeMap(db);
+
+        let query = db
           .from("announcements")
           .select("id, title, content, ai_summary, author, source_url, announced_at, platform_id")
           .order("announced_at", { ascending: false, nullsFirst: false })
           .limit(limit ?? 10);
 
+        if (platform) {
+          const ids = [...platformById.entries()]
+            .filter(([, type]) => type === platform)
+            .map(([id]) => id);
+          if (ids.length === 0) return { count: 0, announcements: [] };
+          query = query.in("platform_id", ids);
+        }
+
+        const { data, error } = await query;
         if (error) return fail("summarize_announcements", error.message);
 
-        const platformById = await getPlatformTypeMap(db);
-        let announcements = (data ?? []).map((a: any) => {
+        const announcements = (data ?? []).map((a: any) => {
           const { platform_id, ...rest } = a;
           return {
             ...rest,
@@ -362,10 +421,6 @@ export function getLocalTools(): Record<string, Tool> {
             platform: platform_id ? (platformById.get(platform_id) ?? null) : null,
           };
         });
-
-        if (platform) {
-          announcements = announcements.filter((a: any) => a.platform === platform);
-        }
 
         return { count: announcements.length, announcements };
       },
