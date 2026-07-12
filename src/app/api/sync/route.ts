@@ -486,6 +486,7 @@ Rules:
 
             const EVENT_COLS_FULL = "id, title, description, event_type, start_time, end_time, source_platform, source_external_id, gcal_event_id, status";
             const scheduled: string[] = [];
+            const warnings: string[] = [];
 
             for (let i = 0; i < events.length; i++) {
               const ev = events[i];
@@ -508,7 +509,7 @@ Rules:
                   (c: any) => normalizeEventTitle(c.title) === normalizeEventTitle(eventTitle)
                 );
                 if (!target) {
-                  scheduled.push(`could not find a matching ${eventType} for ${action} "${eventTitle}"`);
+                  warnings.push(`could not find a matching ${eventType} for ${action} "${eventTitle}"`);
                   continue;
                 }
                 const gid = eventGcalId(target);
@@ -656,7 +657,10 @@ Rules:
               try {
                 await db.from("agent_actions").insert({
                   title: "Concierge Announcement Scan",
-                  description: `Processed announcement "${ann.content.slice(0, 50)}...". Nothing new to schedule or save.`,
+                  description:
+                    warnings.length > 0
+                      ? `Reviewed announcement but ${warnings.join("; ")}.`
+                      : `Processed announcement "${ann.content.slice(0, 50)}...". Nothing new to schedule or save.`,
                   action_type: "sync",
                   source_id: ann.id,
                 });

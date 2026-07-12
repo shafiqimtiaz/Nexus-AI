@@ -99,7 +99,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .limit(10),
     db
       .from("events")
-      .select("id, title, event_type, start_time, end_time")
+      .select("id, title, description, event_type, start_time, end_time, source_platform")
       .gte("start_time", startToday)
       .lt("start_time", startTomorrow)
       .neq("status", "cancelled")
