@@ -168,6 +168,13 @@ export function parseGcalId(externalId: string | null | undefined): string | nul
     : null;
 }
 
+export function eventGcalId(row: {
+  gcal_event_id?: string | null;
+  source_external_id?: string | null;
+}): string | null {
+  return row.gcal_event_id ?? parseGcalId(row.source_external_id);
+}
+
 export async function getGooglePlatformId(): Promise<string | null> {
   const db = createServerClient();
   const { data } = await db
@@ -236,8 +243,7 @@ export async function updateGoogleCalendarEvent(
     if (fields.startTime !== undefined) {
       const { start, end } = eventTimes(fields.startTime, fields.endTime);
       body.start = start;
-      // Only overwrite end when a start was given; otherwise leave Google's end.
-      if (fields.endTime !== undefined) body.end = end;
+      body.end = end; // always send a consistent end with a new start (Google 400s otherwise)
     } else if (fields.endTime !== undefined) {
       body.end = { dateTime: fields.endTime };
     }
@@ -258,23 +264,6 @@ export async function updateGoogleCalendarEvent(
     }
   } catch (error) {
     console.warn("Failed to update Google Calendar event:", error);
-  }
-}
-
-export async function deleteGoogleCalendarEvent(googleId: string): Promise<void> {
-  try {
-    const accessToken = await getValidClassroomToken();
-
-    const response = await fetch(`${CALENDAR_EVENTS_URL}/${encodeURIComponent(googleId)}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-
-    if (!response.ok && response.status !== 404 && response.status !== 410) {
-      console.error("Google Calendar delete error:", await response.text());
-    }
-  } catch (error) {
-    console.warn("Failed to delete Google Calendar event:", error);
   }
 }
 
@@ -336,3 +325,21 @@ export async function listGoogleCalendarEvents(
     return [];
   }
 }
+
+export async function deleteGoogleCalendarEvent(googleId: string): Promise<void> {
+  try {
+    const accessToken = await getValidClassroomToken();
+
+    const response = await fetch(`${CALENDAR_EVENTS_URL}/${encodeURIComponent(googleId)}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok && response.status !== 404 && response.status !== 410) {
+      console.error("Google Calendar delete error:", await response.text());
+    }
+  } catch (error) {
+    console.warn("Failed to delete Google Calendar event:", error);
+  }
+}
+
