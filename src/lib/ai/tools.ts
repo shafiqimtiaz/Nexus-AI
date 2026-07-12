@@ -5,10 +5,9 @@ import { createServerClient } from "@/lib/supabase/server";
 import {
   writeToGoogleCalendar,
   updateGoogleCalendarEvent,
-  getGooglePlatformId,
-  gcalExternalId,
-  parseGcalId,
+  eventGcalId,
 } from "@/lib/auth/google-oauth";
+import { shiftEndForNewStart } from "@/lib/events/helpers";
 
 const EVENT_TYPES = ["exam", "quiz", "assignment", "study_block", "other"] as const;
 
@@ -41,11 +40,7 @@ async function pushEventToGoogle(
     description ?? undefined
   );
   if (googleId) {
-    const platformId = await getGooglePlatformId();
-    await db
-      .from("events")
-      .update({ source_platform: platformId, source_external_id: gcalExternalId(googleId) })
-      .eq("id", eventId);
+    await db.from("events").update({ gcal_event_id: googleId }).eq("id", eventId);
   }
 }
 
@@ -141,6 +136,13 @@ export function getLocalTools(): Record<string, Tool> {
           return fail("edit_event", "no fields provided to update");
         }
 
+        const { data: before } = await db
+          .from("events")
+          .select("id, start_time, end_time, gcal_event_id, source_external_id")
+          .eq("id", id)
+          .maybeSingle();
+        if (!before) return fail("edit_event", "event not found");
+
         const { data, error } = await db
           .from("events")
           .update(patch)
@@ -150,28 +152,19 @@ export function getLocalTools(): Record<string, Tool> {
 
         if (error) return fail("edit_event", error.message);
 
-        const { data: mapRow } = await db
-          .from("events")
-          .select("source_external_id")
-          .eq("id", id)
-          .maybeSingle();
-        const gid = parseGcalId(mapRow?.source_external_id);
+        const gid = eventGcalId(before);
         if (gid) {
+          const newStart = patch.start_time as string | undefined;
           await updateGoogleCalendarEvent(gid, {
             title: patch.title as string | undefined,
-            startTime: patch.start_time as string | undefined,
-            endTime: patch.end_time as string | undefined,
+            startTime: newStart,
+            endTime:
+              (patch.end_time as string | undefined) ??
+              (newStart ? shiftEndForNewStart(before.start_time, before.end_time, newStart) : undefined),
             description: patch.description as string | undefined,
           });
         } else {
-          await pushEventToGoogle(
-            db,
-            id,
-            data.title,
-            data.start_time,
-            data.end_time,
-            data.description
-          );
+          await pushEventToGoogle(db, id, data.title, data.start_time, data.end_time, data.description);
         }
 
         return { updated: data };
