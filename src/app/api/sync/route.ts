@@ -262,9 +262,12 @@ function isAnnouncementWorthy(content: string): boolean {
   if (c.length < ANNOUNCEMENT_MIN_LENGTH) return false;
   if (/^<@!?&?\d+>$/i.test(c)) return false;
   const lower = c.toLowerCase();
+  if (/^(sir|ma'?a?m|madam)\b/i.test(lower)) return false;
+  if (c.endsWith("?") && c.length < 50) return false;
   if (
-    /^(sir|ma'?a?m|madam)\b/i.test(lower) &&
-    (c.length < 60 || lower.includes("?"))
+    /\b(sir|ma'?a?m|madam)\b/i.test(lower) &&
+    /\b(please|postpone)\b/i.test(lower) &&
+    c.length < 100
   )
     return false;
   return true;
