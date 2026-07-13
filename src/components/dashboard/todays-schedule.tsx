@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CalendarCheckIcon } from "@hugeicons/core-free-icons";
+import { CalendarCheckIcon, ChevronDownIcon } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import { PlatformPill } from "@/components/dashboard/platform-pill";
@@ -51,17 +51,10 @@ export function TodaysSchedule({
                         <EventBadge type={event.event_type} />
                       </div>
                     </div>
-                    <svg
+                    <HugeiconsIcon
+                      icon={ChevronDownIcon}
                       className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
+                    />
                   </button>
                   {isOpen && (
                     <div className="ml-16 mt-2 space-y-2 rounded-md border bg-muted/30 px-3 py-3 text-sm">

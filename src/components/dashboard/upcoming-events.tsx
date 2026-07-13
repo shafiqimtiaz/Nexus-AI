@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar03Icon } from "@hugeicons/core-free-icons";
+import { Calendar03Icon, ChevronDownIcon } from "@hugeicons/core-free-icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventBadge } from "@/components/dashboard/event-badge";
 import { PlatformPill } from "@/components/dashboard/platform-pill";
@@ -57,17 +57,10 @@ export function UpcomingEvents({
                       <span className="text-right text-sm font-medium text-primary">
                         {formatDistanceToNow(start, { addSuffix: true })}
                       </span>
-                      <svg
+                      <HugeiconsIcon
+                        icon={ChevronDownIcon}
                         className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
+                      />
                     </div>
                   </button>
                   {isOpen && (
