@@ -8,7 +8,7 @@ import {
   normalizeEventTitle,
   isValidDate,
   shiftEndForNewStart,
-} from "../src/lib/events/helpers.ts";
+} from "../src/lib/events/helpers";
 
 const NOW = new Date("2026-07-12T12:00:00Z");
 
