@@ -109,7 +109,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select(
         "id, title, description, event_type, start_time, end_time, source_platform, source_external_id, is_auto_detected"
       )
-      .eq("event_type", "exam")
+      .in("event_type", ["exam", "quiz"])
       .gte("start_time", nowIso)
       .neq("status", "cancelled")
       .order("start_time", { ascending: true })

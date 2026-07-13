@@ -255,6 +255,21 @@ async function syncClassroom(
   return { announcements: annCount, events: eventCount + calendarEvents };
 }
 
+const ANNOUNCEMENT_MIN_LENGTH = 25;
+
+function isAnnouncementWorthy(content: string): boolean {
+  const c = content.trim();
+  if (c.length < ANNOUNCEMENT_MIN_LENGTH) return false;
+  if (/^<@!?&?\d+>$/i.test(c)) return false;
+  const lower = c.toLowerCase();
+  if (
+    /^(sir|ma'?a?m|madam)\b/i.test(lower) &&
+    (c.length < 60 || lower.includes("?"))
+  )
+    return false;
+  return true;
+}
+
 async function syncDiscord(
   db: ReturnType<typeof createServerClient>,
   platform: PlatformRow
@@ -270,9 +285,11 @@ async function syncDiscord(
     )
   ).flat();
 
+  const filteredMessages = messages.filter((m) => isAnnouncementWorthy(m.content));
+
   const annCount = await upsertAnnouncements(
     db,
-    messages.map((m) => ({
+    filteredMessages.map((m) => ({
       platform_id: platform.id,
       external_id: m.id,
       title: deriveTitle(m.content),
@@ -303,7 +320,8 @@ async function syncSlack(
     )
   )
     .flat()
-    .filter((m) => !isJoinLeaveMessage(m.content));
+    .filter((m) => !isJoinLeaveMessage(m.content))
+    .filter((m) => isAnnouncementWorthy(m.content));
 
   const annCount = await upsertAnnouncements(
     db,

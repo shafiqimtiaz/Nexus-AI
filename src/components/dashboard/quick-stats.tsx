@@ -79,10 +79,10 @@ export function QuickStats({
           }
           label={
             stats.daysToNextExam === null || stats.daysToNextExam === 0
-              ? "Next exam"
+              ? "Next exam / quiz"
               : stats.daysToNextExam === 1
-                ? "Day to next exam"
-                : "Days to next exam"
+                ? "Day to next exam / quiz"
+                : "Days to next exam / quiz"
           }
           onClick={exams.length > 0 ? () => setExamsOpen(true) : undefined}
         />
