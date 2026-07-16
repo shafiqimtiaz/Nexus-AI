@@ -53,10 +53,17 @@ function AnnouncementRow({ item }: { item: DashboardAnnouncement }) {
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium">{item.title || "Announcement"}</span>
               {item.source_url && (
-                <HugeiconsIcon
-                  icon={ExternalLinkIcon}
-                  className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                />
+                <a
+                  href={item.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <HugeiconsIcon
+                    icon={ExternalLinkIcon}
+                    className="h-3.5 w-3.5 shrink-0 text-muted-foreground hover:text-foreground"
+                  />
+                </a>
               )}
             </div>
             {item.ai_summary && (
