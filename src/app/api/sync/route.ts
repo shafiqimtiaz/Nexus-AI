@@ -759,7 +759,7 @@ Rules:
         if (!needsTitle && !needsSummary) continue;
         try {
           const { text } = await generateText({
-            model: googleProvider("gemini-flash-lite-latest"),
+            model: googleProvider("gemini-flash-latest"),
             prompt: `For this announcement, respond with ONLY a JSON object (no markdown):
 {
   "title": "concise headline (max ~8 words), plain text, no markdown/quotes/emoji",
